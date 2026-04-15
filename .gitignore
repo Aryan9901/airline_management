@@ -1,0 +1,74 @@
+# ===============================
+# OS Files
+# ===============================
+.DS_Store
+Thumbs.db
+
+# ===============================
+# IDE (IntelliJ / VSCode)
+# ===============================
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# ===============================
+# Logs
+# ===============================
+logs/
+*.log
+
+# ===============================
+# Environment files
+# ===============================
+.env
+.env.*
+*.local
+
+# ===============================
+# Java / Maven
+# ===============================
+target/
+build/
+out/
+
+# Maven Wrapper (keep jar, ignore binaries)
+.mvn/wrapper/maven-wrapper.jar
+!mvnw
+!mvnw.cmd
+
+# ===============================
+# Spring Boot
+# ===============================
+*.class
+*.jar
+*.war
+*.ear
+
+# ===============================
+# Node / Frontend
+# ===============================
+frontend/node_modules/
+frontend/.next/
+frontend/dist/
+frontend/build/
+frontend/.cache/
+
+# Logs (frontend)
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# ===============================
+# Coverage / Testing
+# ===============================
+coverage/
+*.lcov
+
+# ===============================
+# Misc
+# ===============================
+*.swp
+*.swo
+*~
