@@ -10,7 +10,7 @@ public class HomeController {
     @GetMapping("/help")
     public ApiResponse homeController(){
         ApiResponse apiResponse = new ApiResponse();
-        apiResponse.setMessage("Hello World");
+        apiResponse.setMessage("Hello Aryan gupta");
         return apiResponse;
     }
 
