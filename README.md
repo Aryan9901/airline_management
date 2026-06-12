@@ -25,15 +25,18 @@ The system follows a distributed microservices architecture, ensuring high avail
 ## 🚀 Features
 
 ### 📍 Location Management
+
 - **City Operations**: CRUD operations for cities with support for pagination, sorting, and search.
 - **Airport Operations**: Comprehensive airport management linked to specific cities.
 - **Search & Filter**: Advanced searching by name, country code, and city-airport relationships.
 
 ### 👤 User Management
+
 - **Security**: Secured using Spring Security.
 - **Profile Management**: Scalable user data handling with MySQL.
 
 ### 🛠️ Developer Experience
+
 - **Common Lib**: Reusable components to maintain DRY principle across services.
 - **Standardized Responses**: Consistent API response structures using `ApiResponse`.
 
@@ -76,24 +79,25 @@ The system follows a distributed microservices architecture, ensuring high avail
 ### Database Setup
 
 1. Create a MySQL database named `airline_location_db`:
-   ```sql
-   CREATE DATABASE airline_location_db;
-   ```
+    ```sql
+    CREATE DATABASE airline_location_db;
+    ```
 2. Update the `application.yaml` files in `location-service` and `user-service` with your MySQL credentials.
 
 ### Installation
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/airline-management.git
-   cd airline-management
-   ```
+
+    ```bash
+    git clone https://github.com/your-username/airline-management.git
+    cd airline-management
+    ```
 
 2. Build the project:
-   ```bash
-   cd microservices
-   mvn clean install
-   ```
+    ```bash
+    cd microservices
+    mvn clean install
+    ```
 
 ### Running the Services
 
@@ -111,19 +115,19 @@ mvn spring-boot:run -pl services/user-service
 
 ### Location Service (Port 5004)
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/cities` | List all cities (paginated) |
-| `POST` | `/api/cities` | Create a new city |
-| `GET` | `/api/airports` | List all airports |
-| `GET` | `/api/airports/city/{id}` | Get airports in a specific city |
+| Method | Endpoint                  | Description                     |
+| :----- | :------------------------ | :------------------------------ |
+| `GET`  | `/api/cities`             | List all cities (paginated)     |
+| `POST` | `/api/cities`             | Create a new city               |
+| `GET`  | `/api/airports`           | List all airports               |
+| `GET`  | `/api/airports/city/{id}` | Get airports in a specific city |
 
 ### User Service (Port 5001)
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/` | Service Status |
-| `GET` | `/help` | Help documentation |
+| Method | Endpoint | Description        |
+| :----- | :------- | :----------------- |
+| `GET`  | `/`      | Service Status     |
+| `GET`  | `/help`  | Help documentation |
 
 ---
 
@@ -140,6 +144,3 @@ mvn spring-boot:run -pl services/user-service
 ## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
-
----
-Created with ❤️ by [Aryan](https://github.com/aryan)
