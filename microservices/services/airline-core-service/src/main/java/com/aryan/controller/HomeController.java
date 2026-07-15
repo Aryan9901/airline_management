@@ -6,15 +6,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class HomeController {
-
-    @GetMapping("/")
+    @GetMapping
     public ApiResponse homeController(){
-        return new ApiResponse("hay everyone! I'm user service of airline management system.");
-    }
-
-    @GetMapping("/help")
-    public ApiResponse getHelp(){
-        return new ApiResponse("hay everyone! I'm user service of airline management system.");
+        ApiResponse apiResponse = new ApiResponse("I am Airline Core Services & I manages airlines, aircraft fleet, aircraft models, and operational inventory for the airline system.");
+        return apiResponse;
     }
 }
-

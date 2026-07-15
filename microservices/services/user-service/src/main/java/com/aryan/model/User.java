@@ -8,6 +8,12 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing an application user.
+ *
+ * Stores user profile information, authentication credentials,
+ * authorization role, and audit metadata.
+ */
 @Entity
 @Getter
 @Setter
@@ -27,14 +33,34 @@ public class User {
 
     private String phone;
 
+    /**
+     * Role assigned to the user for authorization.
+     */
     @Column(nullable = false)
     private UserRole role;
 
+    /**
+     * BCrypt hashed password used for authentication.
+     */
+    @Column(nullable = false)
+    private String password;
+
+    /**
+     * Timestamp when the user account was created.
+     * Automatically populated by Hibernate.
+     */
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    /**
+     * Timestamp of the most recent update to the user record.
+     * Automatically maintained by Hibernate.
+     */
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    /**
+     * Timestamp of the user's most recent successful login.
+     */
     private LocalDateTime lastLogin;
 }
