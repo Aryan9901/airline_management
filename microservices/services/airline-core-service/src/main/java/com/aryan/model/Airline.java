@@ -1,5 +1,6 @@
 package com.aryan.model;
 
+import com.aryan.embeddable.Support;
 import com.aryan.enums.AirlineStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -31,6 +32,9 @@ public class Airline {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false, unique = true)
+    private  Long ownerId;
+
     private String alias;
 
     private String logoUrl;
@@ -41,6 +45,11 @@ public class Airline {
     private AirlineStatus status = AirlineStatus.ACTIVE;
 
     private String alliance;
+
+    private Long headquartersCityId;
+
+    @Embedded
+    private Support support;
 
     private Long updatedById;
 

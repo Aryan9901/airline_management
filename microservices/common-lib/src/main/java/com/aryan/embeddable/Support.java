@@ -12,5 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Support {
+    private String hours;
+    private String phone;
     private String email;
 }
