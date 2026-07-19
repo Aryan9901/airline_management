@@ -21,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AirlineController {
 
-    AirlineService airlineService;
+    private final AirlineService airlineService;
 
     @PostMapping
     public ResponseEntity<AirlineResponse> createAirline(@Valid @RequestBody AirlineRequest airlineRequest, @RequestHeader("X-User-Id") Long userId){

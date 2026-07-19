@@ -9,14 +9,23 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 
+/**
+ * Entity representing an airline.
+ *
+ * Stores airline identification, ownership,
+ * operational status, support information,
+ * and audit metadata.
+ */
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EntityListeners(AuditingEntityListener.class)
 public class Airline {
 
     @Id
@@ -32,6 +41,10 @@ public class Airline {
     @Column(nullable = false)
     private String name;
 
+    /**
+     * Identifier of the user who owns
+     * this airline.
+     */
     @Column(nullable = false, unique = true)
     private  Long ownerId;
 
@@ -41,6 +54,9 @@ public class Airline {
 
     private String website;
 
+    /**
+     * Current operational status of the airline.
+     */
     @Enumerated(EnumType.STRING)
     private AirlineStatus status = AirlineStatus.ACTIVE;
 
@@ -48,9 +64,16 @@ public class Airline {
 
     private Long headquartersCityId;
 
+    /**
+     * Customer support contact information.
+     */
     @Embedded
     private Support support;
 
+    /**
+     * Identifier of the user who last
+     * updated this airline.
+     */
     private Long updatedById;
 
     @CreatedDate

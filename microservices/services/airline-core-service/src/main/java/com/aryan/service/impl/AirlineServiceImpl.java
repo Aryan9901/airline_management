@@ -19,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AirlineServiceImpl implements AirlineService {
 
-    AirlineRepository airlineRepository;
+    private final AirlineRepository airlineRepository;
 
     @Override
     public AirlineResponse createAirline(AirlineRequest request, Long ownerId) {
