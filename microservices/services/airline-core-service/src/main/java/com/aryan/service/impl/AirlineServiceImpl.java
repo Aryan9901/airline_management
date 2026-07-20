@@ -15,6 +15,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Service implementation responsible for
+ * airline management operations.
+ */
 @Service
 @RequiredArgsConstructor
 public class AirlineServiceImpl implements AirlineService {
@@ -61,7 +65,13 @@ public class AirlineServiceImpl implements AirlineService {
 
     @Override
     public void deleteAirline(Long id, Long ownerId) throws Exception {
-        Airline airline = airlineRepository.findByOwnerId(ownerId).orElseThrow(() -> new Exception("Airline not found with Owner Id " + ownerId));
+        Airline airline = airlineRepository.findById(id)
+                .orElseThrow(() -> new Exception("Airline not found with Id " + id));
+
+        if (!airline.getOwnerId().equals(ownerId)) {
+            throw new Exception("You are not authorized to delete this airline.");
+        }
+
         airlineRepository.delete(airline);
     }
 

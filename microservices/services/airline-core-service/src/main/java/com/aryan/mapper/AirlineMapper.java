@@ -5,8 +5,21 @@ import com.aryan.model.Airline;
 import com.aryan.payload.request.AirlineRequest;
 import com.aryan.payload.response.AirlineResponse;
 
+/**
+ * Utility class for converting between
+ * {@link Airline}, {@link AirlineRequest},
+ * and {@link AirlineResponse}.
+ */
 public class AirlineMapper {
 
+    /**
+     * Converts an airline request into an
+     * {@link Airline} entity.
+     *
+     * @param request airline request payload
+     * @param ownerId identifier of the airline owner
+     * @return mapped airline entity
+     */
     public static Airline toEntity(AirlineRequest request, Long ownerId){
         if(request == null) return null;
 
@@ -23,10 +36,12 @@ public class AirlineMapper {
                 .ownerId(ownerId)
                 .build();
 
-        if(request.getSupportEmail() != null
-            || request.getSupportHours() != null
-                || request.getSupportPhone() != null
-        ){
+        boolean hasSupportDetails =
+                request.getSupportEmail() != null
+                        || request.getSupportPhone() != null
+                        || request.getSupportHours() != null;
+
+        if(hasSupportDetails){
             airline.setSupport(
                     Support.builder()
                             .email(request.getSupportEmail())
@@ -39,6 +54,13 @@ public class AirlineMapper {
         return airline;
     }
 
+    /**
+     * Converts an {@link Airline} entity into
+     * an {@link AirlineResponse}.
+     *
+     * @param airline airline entity
+     * @return airline response
+     */
     public static AirlineResponse toResponse(Airline airline){
         if(airline == null) return null;
 
@@ -60,6 +82,13 @@ public class AirlineMapper {
                 .build();
     }
 
+    /**
+     * Updates an existing airline entity using
+     * the provided request data.
+     *
+     * @param airline existing airline entity
+     * @param request updated airline details
+     */
     public static void updateEntity(Airline airline, AirlineRequest request){
         if(airline == null || request == null) return;
 

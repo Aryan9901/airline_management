@@ -5,8 +5,21 @@ import com.aryan.model.Airline;
 import com.aryan.payload.request.AircraftRequest;
 import com.aryan.payload.response.AircraftResponse;
 
+/**
+ * Utility class for converting between
+ * {@link Aircraft}, {@link AircraftRequest},
+ * and {@link AircraftResponse}.
+ */
 public class AircraftMapper {
 
+    /**
+     * Converts an aircraft request into an
+     * {@link Aircraft} entity.
+     *
+     * @param request aircraft request payload
+     * @param airline airline associated with the aircraft
+     * @return mapped aircraft entity
+     */
     public static Aircraft toEntity(AircraftRequest request, Airline airline){
 
         if(request == null) return null;
@@ -33,8 +46,19 @@ public class AircraftMapper {
                 .build();
     }
 
+    /**
+     * Converts an {@link Aircraft} entity into
+     * an {@link AircraftResponse}.
+     *
+     * Includes computed fields and airline details.
+     *
+     * @param aircraft aircraft entity
+     * @return aircraft response
+     */
     public static AircraftResponse toResponse(Aircraft aircraft){
         if(aircraft == null) return null;
+
+        Airline airline = aircraft.getAirline();
 
         return AircraftResponse.builder()
                 .id(aircraft.getId())
@@ -54,9 +78,9 @@ public class AircraftMapper {
                 .nextMaintenanceDate(aircraft.getNextMaintenanceDate())
                 .status(aircraft.getStatus())
                 .isAvailable(aircraft.getIsAvailable())
-                .airlineId(aircraft.getAirline() != null ? aircraft.getAirline().getId() : null)
-                .airlineName(aircraft.getAirline() != null ? aircraft.getAirline().getName() : null)
-                .airlineIataCode(aircraft.getAirline() != null ? aircraft.getAirline().getIataCode() : null)
+                .airlineId(airline != null ? airline.getId() : null)
+                .airlineName(airline != null ? airline.getName() : null)
+                .airlineIataCode(airline != null ? airline.getIataCode() : null)
              // Airport is cross-service - only id is available here
                 .currentAirportId(aircraft.getCurrentAirportId())
 
@@ -69,6 +93,14 @@ public class AircraftMapper {
                 .updatedAt(aircraft.getUpdatedAt())
                 .build();
     }
+
+    /**
+     * Updates an existing aircraft entity using
+     * the provided request data.
+     *
+     * @param aircraft existing aircraft entity
+     * @param request updated aircraft details
+     */
 
     public static void updateEntity(Aircraft aircraft, AircraftRequest request){
         if(aircraft == null || request == null) return;

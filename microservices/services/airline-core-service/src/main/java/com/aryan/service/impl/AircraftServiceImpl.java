@@ -13,6 +13,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Service implementation responsible for
+ * aircraft management operations.
+ */
 @Service
 @RequiredArgsConstructor
 public class AircraftServiceImpl implements AircraftService {
@@ -62,7 +66,13 @@ public class AircraftServiceImpl implements AircraftService {
         if(request.getCode() != null && !aircraft.getCode().equals(request.getCode()) && aircraftRepository.existsByCode(request.getCode())){
             throw new Exception("Code already exist with anather aircraft.");
         }
+
         AircraftMapper.updateEntity(aircraft,request);
+
+        if (!aircraft.getSeatingCapacity().equals(aircraft.getTotalSeats())) {
+            throw new Exception("Total seats across all classes must equal the seating capacity.");
+        }
+
         return AircraftMapper.toResponse(aircraftRepository.save(aircraft));
     }
 
