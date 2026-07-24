@@ -54,6 +54,14 @@ Built with a **microservices architecture**, each service is independently deplo
 - Link aircraft to airline owners
 - Complete CRUD operations
 
+### 🛫 Flight Operations
+
+- Flight registration and management
+- Route planning (departure and arrival airports)
+- Aircraft assignment to flights
+- Flight status tracking (Scheduled, Active, Completed, Cancelled, Delayed)
+- Search and filter by airline and route
+
 ### 🌍 Location Management
 
 - **City Management**: Add, update, and search cities worldwide
@@ -86,21 +94,27 @@ Built with a **microservices architecture**, each service is independently deplo
 │                    Service Discovery (Future)               │
 └─────────────────────────────────────────────────────────────┘
                               │
-        ┌─────────────────────┼─────────────────────┐
-        │                     │                     │
-┌───────▼──────┐    ┌────────▼────────┐   ┌───────▼──────┐
-│ User Service │    │Location Service │   │Airline Core  │
-│   Port: 5001 │    │   Port: 5004    │   │Service       │
-│              │    │                 │   │Port: 5005    │
-└──────┬───────┘    └────────┬────────┘   └──────┬───────┘
-       │                     │                   │
-       │                     │                   │
-┌──────▼─────────────────────▼───────────────────▼──────┐
-│              MySQL Databases (3 Separate DBs)         │
-│   - airline_user_db                                   │
-│   - airline_location_db                               │
-│   - airline_core_db                                   │
-└───────────────────────────────────────────────────────┘
+        ┌────────────────────┼───────────────────┬────────────┐
+        │                    │                   │            │
+┌───────▼──────┐    ┌────────▼────────┐   ┌──────▼───────┐    │
+│ User Service │    │Location Service │   │Airline Core  │    │
+│   Port: 5001 │    │   Port: 5004    │   │Service       │    │
+│              │    │                 │   │Port: 5005    │    │
+└──────┬───────┘    └────────┬────────┘   └──────┬───────┘    │
+       │                     │                   │            │
+       │                     │                   │    ┌───────▼─────┐
+       │                     │                   │    │Flight Ops   │
+       │                     │                   │    │Service      │
+       │                     │                   │    │Port: 5006   │
+       │                     │                   │    └──────┬──────┘
+       │                     │                   │           │
+┌──────▼─────────────────────▼───────────────────▼───────────▼──────┐
+│              MySQL Databases (4 Separate DBs)                     │
+│   - airline_user_db                                               │
+│   - airline_location_db                                           │
+│   - airline_core_db                                               │
+│   - airline_flight_db                                             │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
 ### Microservices Architecture Benefits
@@ -120,6 +134,7 @@ Built with a **microservices architecture**, each service is independently deplo
 | **User Service**         | 5001 | `airline_user_db`     | Authentication, authorization, user profiles | [📖 View](./microservices/services/user-service/README.md)         |
 | **Location Service**     | 5004 | `airline_location_db` | Cities and airports management               | [📖 View](./microservices/services/location-service/README.md)     |
 | **Airline Core Service** | 5005 | `airline_core_db`     | Airlines and aircraft management             | [📖 View](./microservices/services/airline-core-service/README.md) |
+| **Flight Ops Service**   | 5006 | `airline_flight_db`   | Flight operations and lifecycle management   | [📖 View](./microservices/services/flight-ops-service/README.md)   |
 | **Common Library**       | -    | -                     | Shared DTOs, enums, and utilities            | [📖 View](./microservices/common-lib/README.md)                    |
 
 ---
@@ -146,12 +161,13 @@ cd airline-management
 
 #### 2. Database Setup
 
-Create three MySQL databases:
+Create four MySQL databases:
 
 ```sql
 CREATE DATABASE airline_user_db;
 CREATE DATABASE airline_location_db;
 CREATE DATABASE airline_core_db;
+CREATE DATABASE airline_flight_db;
 ```
 
 #### 3. Configure Database Credentials
@@ -195,6 +211,7 @@ cd microservices
 mvn spring-boot:run -pl services/user-service
 mvn spring-boot:run -pl services/location-service
 mvn spring-boot:run -pl services/airline-core-service
+mvn spring-boot:run -pl services/flight-ops-service
 ```
 
 #### Option 2: Run individually
@@ -211,6 +228,10 @@ mvn spring-boot:run
 # Airline Core Service
 cd microservices/services/airline-core-service
 mvn spring-boot:run
+
+# Flight Ops Service
+cd microservices/services/flight-ops-service
+mvn spring-boot:run
 ```
 
 ### ✅ Verify Services are Running
@@ -226,6 +247,9 @@ curl http://localhost:5004
 
 # Airline Core Service
 curl http://localhost:5005
+
+# Flight Ops Service
+curl http://localhost:5006
 ```
 
 ---
@@ -239,12 +263,14 @@ curl http://localhost:5005
 | User Service         | `http://localhost:5001` | `/auth/*`, `/api/users/*`             |
 | Location Service     | `http://localhost:5004` | `/api/cities/*`, `/api/airports/*`    |
 | Airline Core Service | `http://localhost:5005` | `/api/airlines/*`, `/api/aircrafts/*` |
+| Flight Ops Service   | `http://localhost:5006` | `/api/flights/*`                      |
 
 For detailed API documentation for each service, please refer to individual service READMEs:
 
 - [User Service API](./microservices/services/user-service/README.md#api-endpoints)
 - [Location Service API](./microservices/services/location-service/README.md#api-endpoints)
 - [Airline Core Service API](./microservices/services/airline-core-service/README.md#api-endpoints)
+- [Flight Ops Service API](./microservices/services/flight-ops-service/README.md#api-endpoints)
 
 ### Example API Calls
 
@@ -284,6 +310,21 @@ curl -X POST http://localhost:5005/api/airlines \
     "name": "Sky Airlines",
     "code": "SKY",
     "country": "USA"
+  }'
+```
+
+#### Register a Flight
+
+```bash
+curl -X POST http://localhost:5006/api/flights \
+  -H "Content-Type: application/json" \
+  -H "X-Airline-Id: 1" \
+  -d '{
+    "flightNumber": "SKY123",
+    "aircraftId": 1,
+    "departureAirportId": 1,
+    "arrivalAirportId": 2,
+    "status": "SCHEDULED"
   }'
 ```
 
@@ -352,7 +393,10 @@ airline-management/
 │       ├── location-service/         # Port 5004
 │       │   ├── src/main/java/
 │       │   └── README.md
-│       └── airline-core-service/     # Port 5005
+│       ├── airline-core-service/     # Port 5005
+│       │   ├── src/main/java/
+│       │   └── README.md
+│       └── flight-ops-service/       # Port 5006
 │           ├── src/main/java/
 │           └── README.md
 ├── .gitignore
