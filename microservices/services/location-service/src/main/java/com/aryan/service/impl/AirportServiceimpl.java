@@ -1,4 +1,4 @@
-package com.aryan.service;
+package com.aryan.service.impl;
 
 import com.aryan.mapper.AirportMapper;
 import com.aryan.model.Airport;
@@ -7,11 +7,11 @@ import com.aryan.payload.request.AirportRequest;
 import com.aryan.payload.response.AirportResponse;
 import com.aryan.repository.AirportRepository;
 import com.aryan.repository.CityRepository;
+import com.aryan.service.AirportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
-public class AirportServiceimpl implements AirportService{
+public class AirportServiceimpl implements AirportService {
 
     /**
      * Repository responsible for airport persistence operations.

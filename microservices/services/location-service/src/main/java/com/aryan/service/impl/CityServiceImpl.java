@@ -1,10 +1,11 @@
-package com.aryan.service;
+package com.aryan.service.impl;
 
 import com.aryan.mapper.CityMapper;
 import com.aryan.model.City;
 import com.aryan.payload.request.CityRequest;
 import com.aryan.payload.response.CityResponse;
 import com.aryan.repository.CityRepository;
+import com.aryan.service.CityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,7 +41,7 @@ public class CityServiceImpl implements CityService {
                 () -> new Exception("City not exist with given id")
         );
 
-        if(cityRepository.existsByCityCode(request.getCityCode())){
+        if(cityRepository.existsByCityCodeAndIdNot(request.getCityCode(), id)){
             throw new Exception("City with given code aready exists");
         }
 

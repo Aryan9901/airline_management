@@ -4,6 +4,7 @@ import com.aryan.model.Aircraft;
 import com.aryan.model.Airline;
 import com.aryan.payload.request.AircraftRequest;
 import com.aryan.payload.response.AircraftResponse;
+import com.aryan.util.MapperUtils;
 
 /**
  * Utility class for converting between
@@ -105,23 +106,23 @@ public class AircraftMapper {
     public static void updateEntity(Aircraft aircraft, AircraftRequest request){
         if(aircraft == null || request == null) return;
 
-        aircraft.setCode(request.getCode());
-        aircraft.setModel(request.getModel());
-        aircraft.setManufacturer(request.getManufacturer());
-        aircraft.setSeatingCapacity(request.getSeatingCapacity());
-        aircraft.setEconomySeats(request.getEconomySeats());
-        aircraft.setPremiumEconomySeats(request.getPremiumEconomySeats());
-        aircraft.setBusinessSeats(request.getBusinessSeats());
-        aircraft.setFirstClassSeats(request.getFirstClassSeats());
-        aircraft.setRangeKm(request.getRangeKm());
-        aircraft.setCruisingSpeedKmh(request.getCruisingSpeedKmh());
-        aircraft.setMaxAltitudeFt(request.getMaxAltitudeFt());
-        aircraft.setYearOfManufacture(request.getYearOfManufacture());
-        aircraft.setRegistrationDate(request.getRegistrationDate());
-        aircraft.setNextMaintenanceDate(request.getNextMaintenanceDate());
-        aircraft.setStatus(request.getStatus());
-        aircraft.setIsAvailable(request.getIsAvailable());
-        aircraft.setCurrentAirportId(request.getCurrentAirportId());
+        MapperUtils.updateIfNotNull(request.getCode(), aircraft::setCode);
+        MapperUtils.updateIfNotNull(request.getModel(), aircraft::setModel);
+        MapperUtils.updateIfNotNull(request.getManufacturer(), aircraft::setManufacturer);
+        MapperUtils.updateIfNotNull(request.getSeatingCapacity(), aircraft::setSeatingCapacity);
+        MapperUtils.updateIfNotNull(request.getEconomySeats(), aircraft::setEconomySeats);
+        MapperUtils.updateIfNotNull(request.getPremiumEconomySeats(), aircraft::setPremiumEconomySeats);
+        MapperUtils.updateIfNotNull(request.getBusinessSeats(), aircraft::setBusinessSeats);
+        MapperUtils.updateIfNotNull(request.getFirstClassSeats(), aircraft::setFirstClassSeats);
+        MapperUtils.updateIfNotNull(request.getRangeKm(), aircraft::setRangeKm);
+        MapperUtils.updateIfNotNull(request.getCruisingSpeedKmh(), aircraft::setCruisingSpeedKmh);
+        MapperUtils.updateIfNotNull(request.getMaxAltitudeFt(), aircraft::setMaxAltitudeFt);
+        MapperUtils.updateIfNotNull(request.getYearOfManufacture(), aircraft::setYearOfManufacture);
+        MapperUtils.updateIfNotNull(request.getRegistrationDate(), aircraft::setRegistrationDate);
+        MapperUtils.updateIfNotNull(request.getNextMaintenanceDate(), aircraft::setNextMaintenanceDate);
+        MapperUtils.updateIfNotNull(request.getStatus(), aircraft::setStatus);
+        MapperUtils.updateIfNotNull(request.getIsAvailable(), aircraft::setIsAvailable);
+        MapperUtils.updateIfNotNull(request.getCurrentAirportId(), aircraft::setCurrentAirportId);
 
     }
 
