@@ -57,10 +57,14 @@ Built with a **microservices architecture**, each service is independently deplo
 ### 🛫 Flight Operations
 
 - Flight registration and management
+- Flight instance scheduling with specific departure/arrival times
 - Route planning (departure and arrival airports)
 - Aircraft assignment to flights
 - Flight status tracking (Scheduled, Active, Completed, Cancelled, Delayed)
-- Search and filter by airline and route
+- Seat management and availability tracking
+- Booking window configuration (min/max advance booking days)
+- Automated flight duration calculation
+- Search and filter by airline, route, date, and flight
 
 ### 🌍 Location Management
 
@@ -134,7 +138,7 @@ Built with a **microservices architecture**, each service is independently deplo
 | **User Service**         | 5001 | `airline_user_db`     | Authentication, authorization, user profiles | [📖 View](./microservices/services/user-service/README.md)         |
 | **Location Service**     | 5004 | `airline_location_db` | Cities and airports management               | [📖 View](./microservices/services/location-service/README.md)     |
 | **Airline Core Service** | 5005 | `airline_core_db`     | Airlines and aircraft management             | [📖 View](./microservices/services/airline-core-service/README.md) |
-| **Flight Ops Service**   | 5006 | `airline_flight_db`   | Flight operations and lifecycle management   | [📖 View](./microservices/services/flight-ops-service/README.md)   |
+| **Flight Ops Service**   | 5006 | `airline_flight_db`   | Flight operations, instances, and scheduling | [📖 View](./microservices/services/flight-ops-service/README.md)   |
 | **Common Library**       | -    | -                     | Shared DTOs, enums, and utilities            | [📖 View](./microservices/common-lib/README.md)                    |
 
 ---
@@ -258,12 +262,12 @@ curl http://localhost:5006
 
 ### Quick Reference
 
-| Service              | Base URL                | Endpoints                             |
-| -------------------- | ----------------------- | ------------------------------------- |
-| User Service         | `http://localhost:5001` | `/auth/*`, `/api/users/*`             |
-| Location Service     | `http://localhost:5004` | `/api/cities/*`, `/api/airports/*`    |
-| Airline Core Service | `http://localhost:5005` | `/api/airlines/*`, `/api/aircrafts/*` |
-| Flight Ops Service   | `http://localhost:5006` | `/api/flights/*`                      |
+| Service              | Base URL                | Endpoints                                   |
+| -------------------- | ----------------------- | ------------------------------------------- |
+| User Service         | `http://localhost:5001` | `/auth/*`, `/api/users/*`                   |
+| Location Service     | `http://localhost:5004` | `/api/cities/*`, `/api/airports/*`          |
+| Airline Core Service | `http://localhost:5005` | `/api/airlines/*`, `/api/aircrafts/*`       |
+| Flight Ops Service   | `http://localhost:5006` | `/api/flights/*`, `/api/flight-instances/*` |
 
 For detailed API documentation for each service, please refer to individual service READMEs:
 
@@ -325,6 +329,28 @@ curl -X POST http://localhost:5006/api/flights \
     "departureAirportId": 1,
     "arrivalAirportId": 2,
     "status": "SCHEDULED"
+  }'
+```
+
+#### Create a Flight Instance
+
+```bash
+curl -X POST http://localhost:5006/api/flight-instances \
+  -H "Content-Type: application/json" \
+  -H "X-Airline-Id: 1" \
+  -d '{
+    "flightId": 1,
+    "scheduleId": 100,
+    "departureAirportId": 1,
+    "arrivalAirportId": 2,
+    "departureDateTime": "2026-08-15T08:30:00",
+    "arrivalDateTime": "2026-08-15T12:45:00",
+    "totalSeats": 180,
+    "availableSeats": 180,
+    "status": "SCHEDULED",
+    "minAdvanceBookingDays": 1,
+    "maxAdvanceBookingDays": 90,
+    "isActive": true
   }'
 ```
 
