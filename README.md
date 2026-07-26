@@ -92,33 +92,76 @@ Built with a **microservices architecture**, each service is independently deplo
 
 ## 🏗️ Architecture
 
+### System Architecture Diagram
+
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     API Gateway (Future)                    │
-│                    Service Discovery (Future)               │
-└─────────────────────────────────────────────────────────────┘
-                              │
-        ┌────────────────────┼───────────────────┬────────────┐
-        │                    │                   │            │
-┌───────▼──────┐    ┌────────▼────────┐   ┌──────▼───────┐    │
-│ User Service │    │Location Service │   │Airline Core  │    │
-│   Port: 5001 │    │   Port: 5004    │   │Service       │    │
-│              │    │                 │   │Port: 5005    │    │
-└──────┬───────┘    └────────┬────────┘   └──────┬───────┘    │
-       │                     │                   │            │
-       │                     │                   │    ┌───────▼─────┐
-       │                     │                   │    │Flight Ops   │
-       │                     │                   │    │Service      │
-       │                     │                   │    │Port: 5006   │
-       │                     │                   │    └──────┬──────┘
-       │                     │                   │           │
-┌──────▼─────────────────────▼───────────────────▼───────────▼──────┐
-│              MySQL Databases (4 Separate DBs)                     │
-│   - airline_user_db                                               │
-│   - airline_location_db                                           │
-│   - airline_core_db                                               │
-│   - airline_flight_db                                             │
-└───────────────────────────────────────────────────────────────────┘
+                    ╔═══════════════════════════════════════════════╗
+                    ║        🌐 API Gateway (Future)               ║
+                    ║        🔍 Service Discovery (Eureka)         ║
+                    ╚═══════════════════════════════════════════════╝
+                                      │
+            ┌─────────────────────────┼──────────────────────────┐
+            │                         │                          │
+            ▼                         ▼                          ▼
+    ┏━━━━━━━━━━━━━┓          ┏━━━━━━━━━━━━━┓           ┏━━━━━━━━━━━━━┓
+    ┃ 👤 User     ┃          ┃ 🌍 Location ┃           ┃ 🏢 Airline  ┃
+    ┃  Service    ┃          ┃  Service    ┃           ┃ Core Service┃
+    ┃             ┃          ┃             ┃           ┃             ┃
+    ┃ Port: 5001  ┃          ┃ Port: 5004  ┃           ┃ Port: 5005  ┃
+    ┗━━━━━━━━━━━━━┛          ┗━━━━━━━━━━━━━┛           ┗━━━━━━━━━━━━━┛
+            │                         │                          │
+            │   ┌─────────────────────┴──────────────┐          │
+            │   │                                    │          │
+            ▼   ▼                                    ▼          ▼
+         ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓      ┏━━━━━━━━━━━━━━━━━┓
+         ┃  ✈️  Flight Ops Service     ┃      ┃ 📚 Common Lib   ┃
+         ┃                             ┃◄─────┃  (Shared DTOs)  ┃
+         ┃  • Flights Management       ┃      ┃                 ┃
+         ┃  • Flight Instances         ┃      ┗━━━━━━━━━━━━━━━━━┛
+         ┃  • Scheduling               ┃
+         ┃  Port: 5006                 ┃
+         ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+                       │
+                       ▼
+    ╔═══════════════════════════════════════════════════════════╗
+    ║              💾 MySQL Databases (4 DBs)                   ║
+    ╠═══════════════════════════════════════════════════════════╣
+    ║  📊 airline_user_db      │  🗺️  airline_location_db       ║
+    ║  🏢 airline_core_db      │  ✈️  airline_flight_db         ║
+    ╚═══════════════════════════════════════════════════════════╝
+```
+
+### Request Flow Example
+
+```
+  👨‍💻 Client
+    │
+    │ 1. POST /auth/signup
+    ├──────────────────────────────────────────────────►  👤 User Service
+    │                                                         │
+    │ ◄─────────────────────────────────────────────────────┤ JWT Token
+    │
+    │ 2. POST /api/airlines (with JWT)
+    ├──────────────────────────────────────────────────►  🏢 Airline Core Service
+    │                                                         │
+    │ ◄─────────────────────────────────────────────────────┤ Airline Created
+    │
+    │ 3. POST /api/flights (with X-Airline-Id)
+    ├──────────────────────────────────────────────────►  ✈️ Flight Ops Service
+    │                                                         │
+    │                                                         │ Validates Aircraft
+    │                                                         ├─────────► 🏢 Core Service
+    │                                                         │
+    │                                                         │ Validates Airports
+    │                                                         ├─────────► 🌍 Location Service
+    │                                                         │
+    │ ◄─────────────────────────────────────────────────────┤ Flight Created
+    │
+    │ 4. POST /api/flight-instances (with X-Airline-Id)
+    ├──────────────────────────────────────────────────►  ✈️ Flight Ops Service
+    │                                                         │
+    │ ◄─────────────────────────────────────────────────────┤ Instance Created
+    │                                                           with Full Details
 ```
 
 ### Microservices Architecture Benefits
@@ -129,9 +172,82 @@ Built with a **microservices architecture**, each service is independently deplo
 ✅ **Fault Isolation**: Failure in one service doesn't affect others  
 ✅ **Team Autonomy**: Different teams can work on different services
 
+### Data Flow: Creating a Flight Instance
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Step 1: User Registration & Authentication                     │
+└─────────────────────────────────────────────────────────────────┘
+                         │
+                    👤 Register User
+                         │
+                    🔐 Receive JWT Token
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Step 2: Create Airline                                         │
+└─────────────────────────────────────────────────────────────────┘
+                         │
+              🏢 POST /api/airlines
+                         │
+              Status: PENDING (awaits admin approval)
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Step 3: Register Aircraft                                      │
+└─────────────────────────────────────────────────────────────────┘
+                         │
+              ✈️ POST /api/aircrafts
+                         │
+              Aircraft linked to Airline
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Step 4: Create Cities & Airports                               │
+└─────────────────────────────────────────────────────────────────┘
+                         │
+              🌍 POST /api/cities
+              🛫 POST /api/airports
+                         │
+              Airports linked to Cities
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Step 5: Create Flight Template                                 │
+└─────────────────────────────────────────────────────────────────┘
+                         │
+              ✈️ POST /api/flights
+                         │
+              Flight: AA123 (JFK → LAX)
+              Aircraft: Boeing 737
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Step 6: Create Flight Instance (Scheduled Flight)              │
+└─────────────────────────────────────────────────────────────────┘
+                         │
+         🎫 POST /api/flight-instances
+                         │
+         ┌────────────────┴────────────────┐
+         │   Flight Instance Details:      │
+         │   • Date: Aug 15, 2026          │
+         │   • Departure: 08:30 AM         │
+         │   • Arrival: 12:45 PM           │
+         │   • Duration: 4h 15min          │
+         │   • Total Seats: 180            │
+         │   • Available: 180              │
+         │   • Status: SCHEDULED           │
+         └─────────────────────────────────┘
+                         │
+                         ▼
+                  ✅ Ready for Booking!
+```
+
 ---
 
 ## 🚀 Services
+
+### Services Overview
 
 | Service                  | Port | Database              | Description                                  | README                                                             |
 | ------------------------ | ---- | --------------------- | -------------------------------------------- | ------------------------------------------------------------------ |
@@ -141,9 +257,65 @@ Built with a **microservices architecture**, each service is independently deplo
 | **Flight Ops Service**   | 5006 | `airline_flight_db`   | Flight operations, instances, and scheduling | [📖 View](./microservices/services/flight-ops-service/README.md)   |
 | **Common Library**       | -    | -                     | Shared DTOs, enums, and utilities            | [📖 View](./microservices/common-lib/README.md)                    |
 
+### Service Capabilities Matrix
+
+```
+┌──────────────────────────┬────────┬──────────┬─────────┬────────────┐
+│ Feature                  │  User  │ Location │ Airline │   Flight   │
+│                          │Service │ Service  │  Core   │    Ops     │
+├──────────────────────────┼────────┼──────────┼─────────┼────────────┤
+│ 🔐 Authentication        │   ✅   │    ❌    │   ❌    │     ❌     │
+│ 👤 User Management       │   ✅   │    ❌    │   ❌    │     ❌     │
+│ 🔑 JWT Authorization     │   ✅   │    ❌    │   ❌    │     ❌     │
+├──────────────────────────┼────────┼──────────┼─────────┼────────────┤
+│ 🌍 City Management       │   ❌   │    ✅    │   ❌    │     ❌     │
+│ 🛫 Airport Management    │   ❌   │    ✅    │   ❌    │     ❌     │
+│ 🗺️  Geo-based Search    │   ❌   │    ✅    │   ❌    │     ❌     │
+├──────────────────────────┼────────┼──────────┼─────────┼────────────┤
+│ 🏢 Airline Management    │   ❌   │    ❌    │   ✅    │     ❌     │
+│ ✈️  Aircraft Fleet       │   ❌   │    ❌    │   ✅    │     ❌     │
+│ 👑 Admin Approval        │   ❌   │    ❌    │   ✅    │     ❌     │
+├──────────────────────────┼────────┼──────────┼─────────┼────────────┤
+│ 🛩️  Flight Templates     │   ❌   │    ❌    │   ❌    │     ✅     │
+│ 🎫 Flight Instances      │   ❌   │    ❌    │   ❌    │     ✅     │
+│ 💺 Seat Management       │   ❌   │    ❌    │   ❌    │     ✅     │
+│ 📅 Scheduling            │   ❌   │    ❌    │   ❌    │     ✅     │
+│ ⏱️  Duration Calculation │   ❌   │    ❌    │   ❌    │     ✅     │
+└──────────────────────────┴────────┴──────────┴─────────┴────────────┘
+```
+
 ---
 
 ## 🚦 Getting Started
+
+### Quick Start Guide
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│              🚀 5-MINUTE SETUP GUIDE                            │
+└─────────────────────────────────────────────────────────────────┘
+
+Step 1: Prerequisites Check
+    ✓ Java 21+       ✓ Maven 3.9+      ✓ MySQL 8.0+      ✓ Git
+
+Step 2: Clone & Setup
+    📥 git clone <repo-url>
+
+Step 3: Database Setup
+    💾 Create 4 MySQL databases
+
+Step 4: Configuration
+    ⚙️  Update application.yaml files
+
+Step 5: Build & Run
+    🔨 mvn clean install
+    ▶️  Run all services
+
+Step 6: Verify
+    ✅ Test endpoints
+
+    🎉 Ready to use!
+```
 
 ### Prerequisites
 
@@ -172,6 +344,15 @@ CREATE DATABASE airline_user_db;
 CREATE DATABASE airline_location_db;
 CREATE DATABASE airline_core_db;
 CREATE DATABASE airline_flight_db;
+```
+
+**Database Overview:**
+
+```
+💾 airline_user_db       → User authentication & profiles
+💾 airline_location_db   → Cities & airports
+💾 airline_core_db       → Airlines & aircraft fleet
+💾 airline_flight_db     → Flights & flight instances
 ```
 
 #### 3. Configure Database Credentials
@@ -254,6 +435,133 @@ curl http://localhost:5005
 
 # Flight Ops Service
 curl http://localhost:5006
+```
+
+---
+
+## 🎯 User Journey & Workflows
+
+### Airline Owner Journey
+
+```
+    ┌─────────────────────────────────────────────────────────────┐
+    │                    AIRLINE OWNER WORKFLOW                    │
+    └─────────────────────────────────────────────────────────────┘
+
+    👤 Step 1: User Registration
+    ┌────────────────────────────────────┐
+    │  POST /auth/signup                 │
+    │  Role: AIRLINE                     │
+    │  ✅ Account Created                │
+    └────────────────┬───────────────────┘
+                     │
+                     ▼
+    🏢 Step 2: Register Airline
+    ┌────────────────────────────────────┐
+    │  POST /api/airlines                │
+    │  Status: PENDING                   │
+    │  ⏳ Awaiting Admin Approval        │
+    └────────────────┬───────────────────┘
+                     │
+                     ▼
+    👑 Step 3: Admin Approval
+    ┌────────────────────────────────────┐
+    │  PUT /api/airlines/{id}/approve    │
+    │  Status: ACTIVE                    │
+    │  ✅ Airline Activated              │
+    └────────────────┬───────────────────┘
+                     │
+                     ▼
+    ✈️  Step 4: Add Aircraft Fleet
+    ┌────────────────────────────────────┐
+    │  POST /api/aircrafts               │
+    │  Model: Boeing 737                 │
+    │  Capacity: 180 seats               │
+    │  ✅ Aircraft Added                 │
+    └────────────────┬───────────────────┘
+                     │
+                     ▼
+    🛩️  Step 5: Create Flight Routes
+    ┌────────────────────────────────────┐
+    │  POST /api/flights                 │
+    │  Route: JFK → LAX                  │
+    │  Aircraft: Boeing 737              │
+    │  ✅ Flight Template Created        │
+    └────────────────┬───────────────────┘
+                     │
+                     ▼
+    🎫 Step 6: Schedule Flight Instances
+    ┌────────────────────────────────────┐
+    │  POST /api/flight-instances        │
+    │  Date: 2026-08-15                  │
+    │  Time: 08:30 AM → 12:45 PM         │
+    │  Available Seats: 180              │
+    │  ✅ Flight Scheduled               │
+    └────────────────┬───────────────────┘
+                     │
+                     ▼
+    📊 Step 7: Monitor & Manage
+    ┌────────────────────────────────────┐
+    │  • Track bookings                  │
+    │  • Update flight status            │
+    │  • Manage seat availability        │
+    │  • View analytics                  │
+    └────────────────────────────────────┘
+```
+
+### Admin Journey
+
+```
+    ┌─────────────────────────────────────────────────────────────┐
+    │                      ADMIN WORKFLOW                          │
+    └─────────────────────────────────────────────────────────────┘
+
+    🔐 Admin Login
+         │
+         ▼
+    ┌─────────────────────────────────────────┐
+    │  Review Pending Airlines                │
+    │  GET /api/airlines?status=PENDING       │
+    └─────────────────┬───────────────────────┘
+                      │
+         ┌────────────┴─────────────┐
+         │                          │
+         ▼                          ▼
+    ✅ APPROVE                  ❌ REJECT
+    │                          │
+    │ PUT /api/airlines/       │ PUT /api/airlines/
+    │     {id}/approve         │     {id}/reject
+    │                          │
+    └────────┬─────────────────┴───────────────┐
+             │                                 │
+             ▼                                 ▼
+    Status: ACTIVE                    Status: BANNED
+    Airlines can operate              Airlines cannot operate
+```
+
+### System Status Flow
+
+```
+    ┌──────────────────────────────────────────────────────────┐
+    │              ENTITY STATUS TRANSITIONS                    │
+    └──────────────────────────────────────────────────────────┘
+
+    AIRLINE STATUS:
+    PENDING ──approve──► ACTIVE ──reject──► BANNED
+       ▲                   │                  │
+       └───────reactivate──┴──────────────────┘
+
+    AIRCRAFT STATUS:
+    ACTIVE ──maintenance──► MAINTENANCE ──repair──► ACTIVE
+      │                                                │
+      └────────────────retire────────────────►  RETIRED
+
+    FLIGHT STATUS:
+    SCHEDULED ──boarding──► ACTIVE ──landing──► COMPLETED
+        │                     │
+        │                     ├──delay──► DELAYED ──resume──► ACTIVE
+        │                     │
+        └─────────────cancel──┴──────────► CANCELLED
 ```
 
 ---
@@ -353,6 +661,90 @@ curl -X POST http://localhost:5006/api/flight-instances \
     "isActive": true
   }'
 ```
+
+---
+
+## 💾 Database Architecture
+
+### Entity Relationship Overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        DATABASE ARCHITECTURE                     │
+└─────────────────────────────────────────────────────────────────┘
+
+    airline_user_db                 airline_location_db
+    ┌─────────────┐                 ┌──────────────┐
+    │    User     │                 │    City      │
+    │─────────────│                 │──────────────│
+    │ id          │                 │ id           │
+    │ email       │                 │ name         │
+    │ password    │                 │ code         │
+    │ role        │                 │ countryCode  │
+    └─────────────┘                 └──────┬───────┘
+                                           │
+                                           │ has many
+                                           ▼
+                                    ┌──────────────┐
+                                    │   Airport    │
+                                    │──────────────│
+                                    │ id           │
+                                    │ name         │
+                                    │ iataCode     │
+                                    │ cityId    FK │
+                                    └──────┬───────┘
+                                           │
+                        ┌──────────────────┼──────────────────┐
+                        │                  │                  │
+    airline_core_db     │                  │   airline_flight_db
+    ┌───────────────┐   │                  │   ┌──────────────┐
+    │   Airline     │   │                  │   │    Flight    │
+    │───────────────│   │                  │   │──────────────│
+    │ id            │   │                  │   │ id           │
+    │ name          │───┼──┐               │   │ flightNumber │
+    │ code          │   │  │               │   │ airlineId FK │◄──┘
+    │ ownerId    FK │◄──┘  │ owns          │   │ aircraftId FK│◄─┐
+    │ status        │      │               │   │ depAirportId │  │
+    └───────────────┘      │               │   │ arrAirportId │  │
+                           │               │   │ status       │  │
+    ┌───────────────┐      │               │   └──────┬───────┘  │
+    │   Aircraft    │      │               │          │          │
+    │───────────────│      │               │          │ has many │
+    │ id            │◄─────┘               │          ▼          │
+    │ model         │                      │   ┌──────────────┐  │
+    │ code          │                      │   │FlightInstance│  │
+    │ airlineId  FK │──────────────────────┤   │──────────────│  │
+    │ totalSeats    │                      │   │ id           │  │
+    │ status        │                      │   │ flightId  FK │──┘
+    └───────────────┘                      │   │ airlineId FK │
+                                           │   │ scheduleId   │
+                                           │   │ depDateTime  │
+                                           │   │ arrDateTime  │
+                                           │   │ totalSeats   │
+                                           │   │ availSeats   │
+                                           │   │ status       │
+                                           │   └──────────────┘
+                                           │
+                                           └─────────────────────────┐
+                                                                     │
+                                                    References       │
+                                                    Airports ────────┘
+```
+
+### Key Relationships
+
+| Entity         | Relationship        | Related Entity | Type        |
+| -------------- | ------------------- | -------------- | ----------- |
+| City           | has many            | Airport        | One-to-Many |
+| User (Owner)   | owns                | Airline        | One-to-One  |
+| Airline        | has many            | Aircraft       | One-to-Many |
+| Airline        | operates            | Flight         | One-to-Many |
+| Aircraft       | assigned to         | Flight         | Many-to-One |
+| Airport        | departure point for | Flight         | Many-to-One |
+| Airport        | arrival point for   | Flight         | Many-to-One |
+| Flight         | has many            | FlightInstance | One-to-Many |
+| FlightInstance | departs from        | Airport        | Many-to-One |
+| FlightInstance | arrives at          | Airport        | Many-to-One |
 
 ---
 
@@ -539,6 +931,38 @@ Solution: Ensure MySQL is running and databases are created
 ---
 
 ## 🗺️ Roadmap
+
+### Phase 1: Foundation ✅ (Completed)
+
+- [x] User Service with authentication
+- [x] Location Service for cities and airports
+- [x] Airline Core Service
+- [x] Flight Operations Service
+- [x] Flight Instance Management
+- [x] Common Library with shared components
+
+### Phase 2: Infrastructure 🚧 (In Progress)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    FUTURE ARCHITECTURE                       │
+└─────────────────────────────────────────────────────────────┘
+
+    🌐 API Gateway (Spring Cloud Gateway)
+         │
+         ├──► 🔍 Service Discovery (Eureka)
+         │
+         ├──► ⚙️  Config Server (Centralized Configuration)
+         │
+         └──► 🔒 OAuth2 Authorization Server
+                   │
+        ┌──────────┼──────────┬─────────────┐
+        │          │          │             │
+        ▼          ▼          ▼             ▼
+     User      Location   Airline        Flight
+    Service    Service    Core          Operations
+                          Service        Service
+```
 
 - [ ] API Gateway implementation
 - [ ] Service Discovery (Eureka)
