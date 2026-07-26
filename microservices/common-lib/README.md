@@ -59,6 +59,31 @@ With the common library:
 
 ## 📦 Contents
 
+### Overview by Category
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    COMMON LIBRARY COMPONENTS                     │
+└─────────────────────────────────────────────────────────────────┘
+
+📝 DTOs (1)              🔢 Enums (4)           📊 Embeddables (3)
+   └─ UserDTO               ├─ AirlineStatus      ├─ Address
+                            ├─ AircraftStatus     ├─ GeoCode
+📥 Requests (7)             ├─ FlightStatus       └─ Support
+   ├─ LoginRequest          └─ UserRole
+   ├─ CityRequest                                🛠️  Utilities (1)
+   ├─ AirportRequest        📤 Responses (9)         └─ MapperUtils
+   ├─ AirlineRequest           ├─ ApiResponse
+   ├─ AircraftRequest          ├─ AuthResponse
+   ├─ FlightRequest            ├─ CityResponse
+   └─ FlightInstanceRequest    ├─ AirportResponse
+                               ├─ AirlineResponse
+                               ├─ AirlineDropdownItem
+                               ├─ AircraftResponse
+                               ├─ FlightResponse
+                               └─ FlightInstanceResponse
+```
+
 ### 1. DTOs (Data Transfer Objects)
 
 Located in: `src/main/java/com/aryan/dto/`
@@ -109,6 +134,23 @@ public enum AircraftStatus {
 }
 ```
 
+#### FlightStatus.java
+
+```java
+public enum FlightStatus {
+    SCHEDULED,   // Flight is scheduled
+    BOARDING,    // Passengers boarding
+    DEPARTED,    // Left departure gate
+    IN_AIR,      // Currently flying
+    LANDED,      // Touched down
+    ARRIVED,     // At arrival gate
+    DELAYED,     // Flight delayed
+    CANCELLED,   // Flight cancelled
+    DIVERTED,    // Diverted to another airport
+    COMPLETED    // Flight completed
+}
+```
+
 #### UserRole.java
 
 ```java
@@ -121,19 +163,33 @@ public enum UserRole {
 
 **Purpose**: Standardize status codes and roles across all services.
 
+**Status Lifecycle**:
+
+```
+Flight: SCHEDULED → BOARDING → DEPARTED → IN_AIR → LANDED → ARRIVED → COMPLETED
+                         ↓           ↓
+                    CANCELLED    DELAYED → (resume) → IN_AIR
+                                    ↓
+                                DIVERTED → LANDED → ARRIVED
+```
+
 ---
 
 ### 3. Request Payloads
 
 Located in: `src/main/java/com/aryan/payload/request/`
 
-These classes define the structure for incoming API requests:
+These classes define the structure for incoming API requests with Jakarta Validation annotations:
 
-- **LoginRequest.java**: User login credentials
-- **CityRequest.java**: City creation/update data
-- **AirportRequest.java**: Airport creation/update data
-- **AirlineRequest.java**: Airline registration data
-- **AircraftRequest.java**: Aircraft registration data
+| Request Class                | Purpose                    | Used By              |
+| ---------------------------- | -------------------------- | -------------------- |
+| **LoginRequest**             | User login credentials     | User Service         |
+| **CityRequest**              | City creation/update       | Location Service     |
+| **AirportRequest**           | Airport creation/update    | Location Service     |
+| **AirlineRequest**           | Airline registration       | Airline Core Service |
+| **AircraftRequest**          | Aircraft registration      | Airline Core Service |
+| **FlightRequest** ✨         | Flight creation/update     | Flight Ops Service   |
+| **FlightInstanceRequest** ✨ | Flight instance scheduling | Flight Ops Service   |
 
 **Example - AirlineRequest.java**:
 
@@ -158,6 +214,65 @@ public class AirlineRequest {
 }
 ```
 
+**Example - FlightRequest.java** ✨ NEW:
+
+```java
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class FlightRequest {
+    @NotBlank(message = "Flight number is required")
+    private String flightNumber;
+
+    @NotNull(message = "Aircraft ID is required")
+    private Long aircraftId;
+
+    @NotNull(message = "Departure airport ID is required")
+    private Long departureAirportId;
+
+    @NotNull(message = "Arrival airport ID is required")
+    private Long arrivalAirportId;
+
+    private FlightStatus status;
+}
+```
+
+**Example - FlightInstanceRequest.java** ✨ NEW:
+
+```java
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class FlightInstanceRequest {
+    @NotNull(message = "Flight ID is required")
+    private Long flightId;
+
+    private Long airlineId;
+    private Long scheduleId;
+    private Long departureAirportId;
+    private Long arrivalAirportId;
+
+    @NotNull(message = "Departure DateTime is required")
+    private LocalDateTime departureDateTime;
+
+    @NotNull(message = "Arrival DateTime is required")
+    private LocalDateTime arrivalDateTime;
+
+    @NotNull(message = "Total Seats is required")
+    private Integer totalSeats;
+
+    @PositiveOrZero
+    private Integer availableSeats;
+
+    private FlightStatus status;
+    private Integer minAdvanceBookingDays;
+    private Integer maxAdvanceBookingDays;
+    private Boolean isActive;
+}
+```
+
 ---
 
 ### 4. Response Payloads
@@ -166,13 +281,17 @@ Located in: `src/main/java/com/aryan/payload/response/`
 
 These classes define the structure for outgoing API responses:
 
-- **ApiResponse.java**: Generic success/error message wrapper
-- **AuthResponse.java**: Authentication response with JWT token
-- **CityResponse.java**: City data response
-- **AirportResponse.java**: Airport data response
-- **AirlineResponse.java**: Airline data response
-- **AircraftResponse.java**: Aircraft data response
-- **AirlineDropdownItem.java**: Simplified airline data for dropdowns
+| Response Class                | Purpose                           | Used By              |
+| ----------------------------- | --------------------------------- | -------------------- |
+| **ApiResponse**               | Generic success/error message     | All Services         |
+| **AuthResponse**              | Authentication with JWT token     | User Service         |
+| **CityResponse**              | City data                         | Location Service     |
+| **AirportResponse**           | Airport data with city info       | Location Service     |
+| **AirlineResponse**           | Airline data                      | Airline Core Service |
+| **AirlineDropdownItem**       | Simplified airline for dropdowns  | Airline Core Service |
+| **AircraftResponse**          | Aircraft data                     | Airline Core Service |
+| **FlightResponse** ✨         | Flight template data              | Flight Ops Service   |
+| **FlightInstanceResponse** ✨ | Flight instance with full details | Flight Ops Service   |
 
 **Example - ApiResponse.java**:
 
@@ -197,6 +316,77 @@ public class AuthResponse {
     private UserDTO user;
 }
 ```
+
+**Example - FlightResponse.java** ✨ NEW:
+
+```java
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class FlightResponse {
+    private Long id;
+    private String flightNumber;
+    private Long airlineId;
+    private Long aircraftId;
+    private Long departureAirportId;
+    private Long arrivalAirportId;
+    private FlightStatus status;
+    private Instant createdAt;
+    private Instant updatedAt;
+}
+```
+
+**Example - FlightInstanceResponse.java** ✨ NEW (Enriched Response):
+
+```java
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class FlightInstanceResponse {
+    private Long id;
+    private Long flightId;
+    private String flightNumber;
+
+    // Airline details
+    private Long airlineId;
+    private String airlineName;
+    private String airlineLogo;
+
+    // Aircraft details
+    private Long aircraftId;
+    private String aircraftModal;
+    private String aircraftCode;
+
+    // Airport details (complete objects)
+    private AirportResponse departureAirport;
+    private AirportResponse arrivalAirport;
+
+    // Schedule details
+    private LocalDateTime departureDateTime;
+    private LocalDateTime arrivalDateTime;
+    private String formattedDuration;  // e.g., "4h 15min"
+
+    // Seat management
+    private Integer totalSeats;
+    private Integer availableSeats;
+
+    // Status & booking rules
+    private FlightStatus status;
+    private boolean isActive;
+    private Integer minAdvanceBookingDays;
+    private Integer maxAdvanceBookingDays;
+}
+```
+
+**Key Features of FlightInstanceResponse**:
+
+- ✅ Enriched with airline name and logo
+- ✅ Complete aircraft information
+- ✅ Full airport objects (not just IDs)
+- ✅ Automatically calculated duration
+- ✅ Real-time seat availability
 
 ---
 
@@ -250,6 +440,52 @@ public class Support {
 ```
 
 **Purpose**: Reusable embedded objects that can be included in multiple entities.
+
+---
+
+### 6. Utilities ✨ NEW
+
+Located in: `src/main/java/com/aryan/util/`
+
+**MapperUtils.java**
+
+```java
+public final class MapperUtils {
+
+    private MapperUtils() {
+        // Prevent instantiation
+    }
+
+    /**
+     * Update a field only if the value is not null
+     * Useful for PATCH operations where only provided fields should be updated
+     */
+    public static <T> void updateIfNotNull(T value, Consumer<T> setter) {
+        if (value != null) {
+            setter.accept(value);
+        }
+    }
+}
+```
+
+**Usage Example**:
+
+```java
+// In a service update method
+public Airline updateAirline(Long id, AirlineRequest request) {
+    Airline airline = airlineRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Airline not found"));
+
+    // Update only non-null fields
+    MapperUtils.updateIfNotNull(request.getName(), airline::setName);
+    MapperUtils.updateIfNotNull(request.getCountry(), airline::setCountry);
+    MapperUtils.updateIfNotNull(request.getDescription(), airline::setDescription);
+
+    return airlineRepository.save(airline);
+}
+```
+
+**Purpose**: Provide reusable utility methods for common operations like partial updates.
 
 ---
 
@@ -371,23 +607,34 @@ common-lib/
 │   └── main/
 │       └── java/com/aryan/
 │           ├── CommonLibApplication.java      # Main class (not used)
+│           │
 │           ├── dto/
 │           │   └── UserDTO.java              # User data transfer
+│           │
 │           ├── enums/
 │           │   ├── AircraftStatus.java       # Aircraft statuses
 │           │   ├── AirlineStatus.java        # Airline statuses
+│           │   ├── FlightStatus.java         # ✨ Flight statuses
 │           │   └── UserRole.java             # User roles
+│           │
 │           ├── embeddable/
 │           │   ├── Address.java              # Address embedded entity
 │           │   ├── GeoCode.java              # GPS coordinates
 │           │   └── Support.java              # Support contact info
+│           │
+│           ├── util/                         # ✨ NEW
+│           │   └── MapperUtils.java          # Utility methods
+│           │
 │           └── payload/
 │               ├── request/
 │               │   ├── AircraftRequest.java  # Aircraft creation
 │               │   ├── AirlineRequest.java   # Airline creation
 │               │   ├── AirportRequest.java   # Airport creation
 │               │   ├── CityRequest.java      # City creation
+│               │   ├── FlightRequest.java    # ✨ Flight creation
+│               │   ├── FlightInstanceRequest.java  # ✨ Flight instance
 │               │   └── LoginRequest.java     # Login credentials
+│               │
 │               └── response/
 │                   ├── AircraftResponse.java  # Aircraft data
 │                   ├── AirlineResponse.java   # Airline data
@@ -395,9 +642,29 @@ common-lib/
 │                   ├── AirportResponse.java   # Airport data
 │                   ├── ApiResponse.java       # Generic response
 │                   ├── AuthResponse.java      # Auth with JWT
-│                   └── CityResponse.java      # City data
+│                   ├── CityResponse.java      # City data
+│                   ├── FlightResponse.java    # ✨ Flight data
+│                   └── FlightInstanceResponse.java  # ✨ Flight instance
+│
 ├── pom.xml                                    # Maven configuration
 └── README.md                                  # This file
+```
+
+### Component Count
+
+```
+┌──────────────────────┬───────┬────────────────────────────────┐
+│ Category             │ Count │ Description                    │
+├──────────────────────┼───────┼────────────────────────────────┤
+│ DTOs                 │   1   │ User data transfer             │
+│ Enums                │   4   │ Status codes & roles           │
+│ Embeddables          │   3   │ Reusable embedded entities     │
+│ Request Payloads     │   7   │ API request structures         │
+│ Response Payloads    │   9   │ API response structures        │
+│ Utilities            │   1   │ Helper methods                 │
+├──────────────────────┼───────┼────────────────────────────────┤
+│ TOTAL                │  25   │ Shared components              │
+└──────────────────────┴───────┴────────────────────────────────┘
 ```
 
 ---
@@ -462,16 +729,71 @@ When making changes to the common library:
 
 ### Step-by-Step Process
 
-1. **Make changes** to the common library
-2. **Build the library**:
-   ```bash
-   cd microservices/common-lib
-   mvn clean install
-   ```
-3. **Rebuild dependent services**:
+```
+┌─────────────────────────────────────────────────────────────┐
+│           COMMON LIBRARY UPDATE WORKFLOW                     │
+└─────────────────────────────────────────────────────────────┘
 
-   ```bash
-   cd ../services/user-service
+1️⃣  Make Changes
+    └─ Edit/Add classes in common-lib
+
+2️⃣  Build Library
+    └─ cd microservices/common-lib
+    └─ mvn clean install
+
+3️⃣  Update Services
+    └─ Services automatically pick up changes
+    └─ Or update version in pom.xml if needed
+
+4️⃣  Rebuild Services
+    └─ cd ../services/{service-name}
+    └─ mvn clean install
+
+5️⃣  Test
+    └─ Run integration tests
+    └─ Verify API endpoints
+
+6️⃣  Deploy
+    └─ Restart all services
+```
+
+### Migration Guide for Flight Operations
+
+If updating to use FlightStatus and Flight-related components:
+
+**Step 1: Rebuild common-lib**
+
+```bash
+cd microservices/common-lib
+mvn clean install
+```
+
+**Step 2: Import new components in your service**
+
+```java
+import com.aryan.enums.FlightStatus;
+import com.aryan.payload.request.FlightRequest;
+import com.aryan.payload.request.FlightInstanceRequest;
+import com.aryan.payload.response.FlightResponse;
+import com.aryan.payload.response.FlightInstanceResponse;
+import com.aryan.util.MapperUtils;
+```
+
+**Step 3: Use FlightStatus in entities**
+
+```java
+@Entity
+public class Flight {
+    @Enumerated(EnumType.STRING)
+    private FlightStatus status = FlightStatus.SCHEDULED;
+}
+```
+
+**Step 4: Rebuild your service**
+
+```bash
+
+ cd ../services/user-service
    mvn clean install
 
    cd ../location-service
@@ -479,7 +801,10 @@ When making changes to the common library:
 
    cd ../airline-core-service
    mvn clean install
-   ```
+
+    cd ../services/flight-ops-service
+    mvn clean install
+```
 
 ---
 
@@ -534,11 +859,40 @@ The common library uses minimal dependencies:
 
 ## 🔗 Used By
 
-This library is a dependency for:
+This library is a dependency for all microservices:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│               COMMON LIBRARY DEPENDENCIES                    │
+└─────────────────────────────────────────────────────────────┘
+
+    Common Library (v0.0.1-SNAPSHOT)
+            │
+            ├──────────────┬──────────────┬──────────────┐
+            │              │              │              │
+            ▼              ▼              ▼              ▼
+    ┌──────────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────┐
+    │ User Service │ │ Location │ │ Airline  │ │  Flight Ops  │
+    │              │ │ Service  │ │   Core   │ │   Service    │
+    │  Port: 5001  │ │Port: 5004│ │Port: 5005│ │  Port: 5006  │
+    └──────────────┘ └──────────┘ └──────────┘ └──────────────┘
+```
+
+### Service-Specific Usage
+
+| Service                   | Components Used                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------- |
+| **User Service**          | UserDTO, UserRole, LoginRequest, AuthResponse, ApiResponse                                        |
+| **Location Service**      | CityRequest, AirportRequest, CityResponse, AirportResponse                                        |
+| **Airline Core Service**  | AirlineRequest, AircraftRequest, AirlineResponse, AircraftResponse, AirlineStatus, AircraftStatus |
+| **Flight Ops Service** ✨ | FlightRequest, FlightInstanceRequest, FlightResponse, FlightInstanceResponse, FlightStatus        |
+
+**Links**:
 
 - ✅ [User Service](../services/user-service/README.md)
 - ✅ [Location Service](../services/location-service/README.md)
 - ✅ [Airline Core Service](../services/airline-core-service/README.md)
+- ✅ [Flight Ops Service](../services/flight-ops-service/README.md)
 - ✅ Future microservices
 
 ---
@@ -552,7 +906,92 @@ For questions about the common library:
 
 ---
 
-## 📄 License
+## � Quick Reference
+
+### Component Finder
+
+Need to find a specific component? Use this quick reference:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    QUICK COMPONENT FINDER                    │
+└─────────────────────────────────────────────────────────────┘
+
+Looking for...          →  Use this component
+─────────────────────────────────────────────────────────────
+🔐 Login payload        →  LoginRequest
+👤 User data           →  UserDTO, UserRole
+🏢 Airline data        →  AirlineRequest/Response, AirlineStatus
+✈️  Aircraft data       →  AircraftRequest/Response, AircraftStatus
+🌍 Location data       →  CityRequest/Response, AirportRequest/Response
+🛩️  Flight template     →  FlightRequest/Response
+🎫 Flight instance     →  FlightInstanceRequest/Response
+📊 Flight statuses     →  FlightStatus enum
+🔧 Partial updates     →  MapperUtils.updateIfNotNull()
+📍 Address info        →  Address embeddable
+🗺️  GPS coordinates    →  GeoCode embeddable
+📞 Contact info        →  Support embeddable
+✅ Success/Error msg   →  ApiResponse
+🔑 JWT token response  →  AuthResponse
+```
+
+### Common Patterns
+
+#### Pattern 1: Controller with Request/Response
+
+```java
+@PostMapping("/api/flights")
+public ResponseEntity<FlightResponse> create(
+    @Valid @RequestBody FlightRequest request
+) {
+    FlightResponse response = flightService.create(request);
+    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+}
+```
+
+#### Pattern 2: Using Enums
+
+```java
+@Entity
+public class Flight {
+    @Enumerated(EnumType.STRING)
+    private FlightStatus status = FlightStatus.SCHEDULED;
+
+    public void cancel() {
+        this.status = FlightStatus.CANCELLED;
+    }
+}
+```
+
+#### Pattern 3: Partial Updates with MapperUtils
+
+```java
+public Flight update(Long id, FlightRequest request) {
+    Flight flight = repository.findById(id).orElseThrow();
+
+    MapperUtils.updateIfNotNull(request.getFlightNumber(), flight::setFlightNumber);
+    MapperUtils.updateIfNotNull(request.getStatus(), flight::setStatus);
+
+    return repository.save(flight);
+}
+```
+
+#### Pattern 4: Using Embeddables
+
+```java
+@Entity
+public class Airport {
+    @Embedded
+    private Address address;
+
+    @Embedded
+    private GeoCode geoCode;
+}
+```
+
+---
+
+## �📄 License
 
 Part of the Airline Management System - MIT License
 
@@ -561,6 +1000,8 @@ Part of the Airline Management System - MIT License
 <div align="center">
 
 **Common Library** | Powering All Microservices
+
+**25 Shared Components** • **4 Services** • **1 Source of Truth**
 
 [⬆ Back to Top](#-common-library)
 
