@@ -570,12 +570,12 @@ curl http://localhost:5006
 
 ### Quick Reference
 
-| Service              | Base URL                | Endpoints                                   |
-| -------------------- | ----------------------- | ------------------------------------------- |
-| User Service         | `http://localhost:5001` | `/auth/*`, `/api/users/*`                   |
-| Location Service     | `http://localhost:5004` | `/api/cities/*`, `/api/airports/*`          |
-| Airline Core Service | `http://localhost:5005` | `/api/airlines/*`, `/api/aircrafts/*`       |
-| Flight Ops Service   | `http://localhost:5006` | `/api/flights/*`, `/api/flight-instances/*` |
+| Service              | Base URL                | Endpoints                                                       |
+| -------------------- | ----------------------- | --------------------------------------------------------------- |
+| User Service         | `http://localhost:5001` | `/auth/*`, `/api/users/*`                                       |
+| Location Service     | `http://localhost:5004` | `/api/cities/*`, `/api/airports/*`                              |
+| Airline Core Service | `http://localhost:5005` | `/api/airlines/*`, `/api/aircrafts/*`                           |
+| Flight Ops Service   | `http://localhost:5006` | `/api/flights/*`, `/api/schedules/*`, `/api/flight-instances/*` |
 
 For detailed API documentation for each service, please refer to individual service READMEs:
 

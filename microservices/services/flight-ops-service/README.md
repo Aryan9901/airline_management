@@ -49,6 +49,15 @@ The **Flight Operations Service** is responsible for managing all flight-related
 - **Enriched Data**: Returns complete flight, airline, aircraft, and airport details
 - **Advanced Filtering**: Search by date, route, flight, and airline
 
+### 📅 Flight Schedule Management
+
+- **Schedule Creation**: Define recurring flight schedules with operating days
+- **Time Management**: Set departure and arrival times for routes
+- **Date Range**: Configure start and end dates for schedule validity
+- **Operating Days**: Specify which days of the week flights operate (Mon-Sun)
+- **Flexible Patterns**: Support for daily, weekday, weekend, or custom schedules
+- **Active Status**: Enable/disable schedules without deletion
+
 ### 🔍 Search & Filter
 
 - **Search by Airline**: Retrieve all flights/instances for a specific airline
@@ -101,6 +110,36 @@ The **Flight Operations Service** is responsible for managing all flight-related
 | `max_advance_booking_days` | INT         |                             | Maximum days before departure     |
 | `is_active`                | BOOLEAN     | DEFAULT TRUE                | Active status flag                |
 
+### FlightSchedule Entity
+
+| Column                 | Type         | Constraints                 | Description                  |
+| ---------------------- | ------------ | --------------------------- | ---------------------------- |
+| `id`                   | BIGINT       | PRIMARY KEY, AUTO_INCREMENT | Unique schedule identifier   |
+| `flight_id`            | BIGINT       | NOT NULL, FOREIGN KEY       | Reference to flight template |
+| `departure_airport_id` | BIGINT       | NOT NULL                    | Departure airport reference  |
+| `arrival_airport_id`   | BIGINT       | NOT NULL                    | Arrival airport reference    |
+| `departure_time`       | TIME         | NOT NULL                    | Daily departure time         |
+| `arrival_time`         | TIME         | NOT NULL                    | Daily arrival time           |
+| `start_date`           | DATE         | NOT NULL                    | Schedule validity start      |
+| `end_date`             | DATE         | NOT NULL                    | Schedule validity end        |
+| `operating_days`       | VARCHAR(255) | ELEMENT COLLECTION          | Days of week (JSON array)    |
+| `is_active`            | BOOLEAN      | DEFAULT TRUE                | Active status flag           |
+
+### Operating Days
+
+FlightSchedule supports flexible operating patterns:
+
+- **MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY**
+
+**Common Patterns**:
+
+```
+Daily:     [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY]
+Weekdays:  [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]
+Weekends:  [SATURDAY, SUNDAY]
+Custom:    [MONDAY, WEDNESDAY, FRIDAY]
+```
+
 ### Flight Status Enum
 
 - `SCHEDULED`: Flight is scheduled
@@ -122,6 +161,16 @@ The **Flight Operations Service** is responsible for managing all flight-related
 | GET    | `/airline` | Get flights by airline | ✅ Airline ID |
 | PUT    | `/{id}`    | Update flight details  | ❌            |
 | DELETE | `/{id}`    | Delete a flight        | ✅ Airline ID |
+
+### Flight Schedules API: `/api/schedules`
+
+| Method | Endpoint | Description              | Auth Required |
+| ------ | -------- | ------------------------ | ------------- |
+| POST   | `/`      | Create a new schedule    | ✅ Airline ID |
+| GET    | `/{id}`  | Get schedule by ID       | ❌            |
+| GET    | `/`      | Get schedules by airline | ✅ Airline ID |
+| PUT    | `/{id}`  | Update schedule details  | ❌            |
+| DELETE | `/{id}`  | Delete a schedule        | ❌            |
 
 ### Flight Instances API: `/api/flight-instances`
 
@@ -297,6 +346,200 @@ GET /api/flights/airline?departureAirportId=10&page=0&size=10
 ```
 X-Airline-Id: <airline_id>
 ```
+
+**Response**: `204 No Content`
+
+---
+
+## Flight Schedule API
+
+#### 1. Create Flight Schedule
+
+**Endpoint**: `POST /api/schedules`
+
+**Headers**:
+
+```
+Content-Type: application/json
+X-Airline-Id: <airline_id>
+```
+
+**Request Body**:
+
+```json
+{
+  "flightId": 1,
+  "departureAirportId": 10,
+  "arrivalAirportId": 20,
+  "departureTime": "08:30:00",
+  "arrivalTime": "12:45:00",
+  "startDate": "2026-09-01",
+  "endDate": "2026-12-31",
+  "operatingDays": ["MONDAY", "WEDNESDAY", "FRIDAY"],
+  "isActive": true
+}
+```
+
+**Response**: `201 Created`
+
+```json
+{
+  "id": 1,
+  "flightId": 1,
+  "flightNumber": "AA123",
+  "departureAirport": {
+    "id": 10,
+    "name": "John F. Kennedy International Airport",
+    "iataCode": "JFK",
+    "city": "New York"
+  },
+  "arrivalAirport": {
+    "id": 20,
+    "name": "Los Angeles International Airport",
+    "iataCode": "LAX",
+    "city": "Los Angeles"
+  },
+  "departureTime": "08:30:00",
+  "arrivalTime": "12:45:00",
+  "startDate": "2026-09-01",
+  "endDate": "2026-12-31",
+  "operatingDays": ["MONDAY", "WEDNESDAY", "FRIDAY"],
+  "isActive": true
+}
+```
+
+---
+
+#### 2. Get Flight Schedule by ID
+
+**Endpoint**: `GET /api/schedules/{id}`
+
+**Response**: `200 OK`
+
+```json
+{
+  "id": 1,
+  "flightId": 1,
+  "flightNumber": "AA123",
+  "departureAirport": {
+    "id": 10,
+    "name": "John F. Kennedy International Airport",
+    "iataCode": "JFK",
+    "city": "New York"
+  },
+  "arrivalAirport": {
+    "id": 20,
+    "name": "Los Angeles International Airport",
+    "iataCode": "LAX",
+    "city": "Los Angeles"
+  },
+  "departureTime": "08:30:00",
+  "arrivalTime": "12:45:00",
+  "startDate": "2026-09-01",
+  "endDate": "2026-12-31",
+  "operatingDays": ["MONDAY", "WEDNESDAY", "FRIDAY"],
+  "isActive": true
+}
+```
+
+---
+
+#### 3. Get Flight Schedules by Airline
+
+**Endpoint**: `GET /api/schedules`
+
+**Headers**:
+
+```
+X-Airline-Id: <airline_id>
+```
+
+**Response**: `200 OK`
+
+```json
+[
+  {
+    "id": 1,
+    "flightId": 1,
+    "flightNumber": "AA123",
+    "departureAirport": {
+      "id": 10,
+      "iataCode": "JFK"
+    },
+    "arrivalAirport": {
+      "id": 20,
+      "iataCode": "LAX"
+    },
+    "departureTime": "08:30:00",
+    "arrivalTime": "12:45:00",
+    "startDate": "2026-09-01",
+    "endDate": "2026-12-31",
+    "operatingDays": ["MONDAY", "WEDNESDAY", "FRIDAY"],
+    "isActive": true
+  },
+  {
+    "id": 2,
+    "flightId": 1,
+    "flightNumber": "AA123",
+    "departureAirport": {
+      "id": 10,
+      "iataCode": "JFK"
+    },
+    "arrivalAirport": {
+      "id": 20,
+      "iataCode": "LAX"
+    },
+    "departureTime": "14:00:00",
+    "arrivalTime": "18:15:00",
+    "startDate": "2026-09-01",
+    "endDate": "2026-12-31",
+    "operatingDays": ["TUESDAY", "THURSDAY", "SATURDAY"],
+    "isActive": true
+  }
+]
+```
+
+---
+
+#### 4. Update Flight Schedule
+
+**Endpoint**: `PUT /api/schedules/{id}`
+
+**Request Body**:
+
+```json
+{
+  "flightId": 1,
+  "departureAirportId": 10,
+  "arrivalAirportId": 20,
+  "departureTime": "09:00:00",
+  "arrivalTime": "13:15:00",
+  "startDate": "2026-09-01",
+  "endDate": "2026-12-31",
+  "operatingDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
+  "isActive": true
+}
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "id": 1,
+  "flightId": 1,
+  "flightNumber": "AA123",
+  "departureTime": "09:00:00",
+  "arrivalTime": "13:15:00",
+  "operatingDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
+  "isActive": true
+}
+```
+
+---
+
+#### 5. Delete Flight Schedule
+
+**Endpoint**: `DELETE /api/schedules/{id}`
 
 **Response**: `204 No Content`
 
@@ -672,6 +915,104 @@ curl -X DELETE http://localhost:5006/api/flights/1 \
 
 ---
 
+### Flight Schedule API Examples
+
+#### Create a Flight Schedule
+
+```bash
+curl -X POST http://localhost:5006/api/schedules \
+  -H "Content-Type: application/json" \
+  -H "X-Airline-Id: 5" \
+  -d '{
+    "flightId": 1,
+    "departureAirportId": 1,
+    "arrivalAirportId": 2,
+    "departureTime": "08:30:00",
+    "arrivalTime": "12:45:00",
+    "startDate": "2026-09-01",
+    "endDate": "2026-12-31",
+    "operatingDays": ["MONDAY", "WEDNESDAY", "FRIDAY"],
+    "isActive": true
+  }'
+```
+
+#### Create Daily Schedule (All Days)
+
+```bash
+curl -X POST http://localhost:5006/api/schedules \
+  -H "Content-Type: application/json" \
+  -H "X-Airline-Id: 5" \
+  -d '{
+    "flightId": 1,
+    "departureAirportId": 1,
+    "arrivalAirportId": 2,
+    "departureTime": "14:00:00",
+    "arrivalTime": "18:15:00",
+    "startDate": "2026-09-01",
+    "endDate": "2026-12-31",
+    "operatingDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+    "isActive": true
+  }'
+```
+
+#### Create Weekdays Only Schedule
+
+```bash
+curl -X POST http://localhost:5006/api/schedules \
+  -H "Content-Type: application/json" \
+  -H "X-Airline-Id: 5" \
+  -d '{
+    "flightId": 1,
+    "departureAirportId": 1,
+    "arrivalAirportId": 2,
+    "departureTime": "06:00:00",
+    "arrivalTime": "10:15:00",
+    "startDate": "2026-09-01",
+    "endDate": "2026-12-31",
+    "operatingDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
+    "isActive": true
+  }'
+```
+
+#### Get Flight Schedule Details
+
+```bash
+curl http://localhost:5006/api/schedules/1
+```
+
+#### Get All Schedules for Airline
+
+```bash
+curl -H "X-Airline-Id: 5" \
+  http://localhost:5006/api/schedules
+```
+
+#### Update Flight Schedule
+
+```bash
+curl -X PUT http://localhost:5006/api/schedules/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "flightId": 1,
+    "departureAirportId": 1,
+    "arrivalAirportId": 2,
+    "departureTime": "09:00:00",
+    "arrivalTime": "13:15:00",
+    "startDate": "2026-09-01",
+    "endDate": "2026-12-31",
+    "operatingDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
+    "isActive": true
+  }'
+```
+
+#### Delete a Flight Schedule
+
+```bash
+curl -X DELETE http://localhost:5006/api/schedules/1
+```
+
+---
+
 ### Flight Instance API Examples
 
 #### Create a Flight Instance
@@ -762,18 +1103,23 @@ flight-ops-service/
 │   │   │   ├── config/              # Configuration classes
 │   │   │   ├── controller/          # REST Controllers
 │   │   │   │   ├── FlightController.java
+│   │   │   │   ├── FlightScheduleController.java
 │   │   │   │   ├── FlightInstanceController.java
 │   │   │   │   └── HomeController.java
 │   │   │   ├── mapper/              # DTO Mappers
-│   │   │   │   └── FlightInstanceMapper.java
+│   │   │   │   ├── FlightInstanceMapper.java
+│   │   │   │   └── FlightScheduleMapper.java
 │   │   │   ├── model/               # JPA Entities
 │   │   │   │   ├── Flight.java
+│   │   │   │   ├── FlightSchedule.java
 │   │   │   │   └── FlightInstance.java
 │   │   │   ├── repository/          # Data Access Layer
 │   │   │   │   ├── FlightRepository.java
+│   │   │   │   ├── FlightScheduleRepository.java
 │   │   │   │   └── FlightInstanceRepository.java
 │   │   │   ├── service/             # Business Logic
 │   │   │   │   ├── FlightService.java
+│   │   │   │   ├── FlightScheduleService.java
 │   │   │   │   ├── FlightInstanceService.java
 │   │   │   │   └── impl/
 │   │   │   └── FlightOpsServiceApplication.java

@@ -69,18 +69,19 @@ With the common library:
 📝 DTOs (1)              🔢 Enums (4)           📊 Embeddables (3)
    └─ UserDTO               ├─ AirlineStatus      ├─ Address
                             ├─ AircraftStatus     ├─ GeoCode
-📥 Requests (7)             ├─ FlightStatus       └─ Support
+📥 Requests (8)             ├─ FlightStatus       └─ Support
    ├─ LoginRequest          └─ UserRole
    ├─ CityRequest                                🛠️  Utilities (1)
-   ├─ AirportRequest        📤 Responses (9)         └─ MapperUtils
+   ├─ AirportRequest        📤 Responses (10)        └─ MapperUtils
    ├─ AirlineRequest           ├─ ApiResponse
    ├─ AircraftRequest          ├─ AuthResponse
    ├─ FlightRequest            ├─ CityResponse
-   └─ FlightInstanceRequest    ├─ AirportResponse
-                               ├─ AirlineResponse
+   ├─ FlightScheduleRequest    ├─ AirportResponse
+   └─ FlightInstanceRequest    ├─ AirlineResponse
                                ├─ AirlineDropdownItem
                                ├─ AircraftResponse
                                ├─ FlightResponse
+                               ├─ FlightScheduleResponse
                                └─ FlightInstanceResponse
 ```
 
@@ -181,15 +182,16 @@ Located in: `src/main/java/com/aryan/payload/request/`
 
 These classes define the structure for incoming API requests with Jakarta Validation annotations:
 
-| Request Class                | Purpose                    | Used By              |
-| ---------------------------- | -------------------------- | -------------------- |
-| **LoginRequest**             | User login credentials     | User Service         |
-| **CityRequest**              | City creation/update       | Location Service     |
-| **AirportRequest**           | Airport creation/update    | Location Service     |
-| **AirlineRequest**           | Airline registration       | Airline Core Service |
-| **AircraftRequest**          | Aircraft registration      | Airline Core Service |
-| **FlightRequest** ✨         | Flight creation/update     | Flight Ops Service   |
-| **FlightInstanceRequest** ✨ | Flight instance scheduling | Flight Ops Service   |
+| Request Class                | Purpose                       | Used By              |
+| ---------------------------- | ----------------------------- | -------------------- |
+| **LoginRequest**             | User login credentials        | User Service         |
+| **CityRequest**              | City creation/update          | Location Service     |
+| **AirportRequest**           | Airport creation/update       | Location Service     |
+| **AirlineRequest**           | Airline registration          | Airline Core Service |
+| **AircraftRequest**          | Aircraft registration         | Airline Core Service |
+| **FlightRequest** ✨         | Flight creation/update        | Flight Ops Service   |
+| **FlightScheduleRequest** ✨ | Flight schedule configuration | Flight Ops Service   |
+| **FlightInstanceRequest** ✨ | Flight instance scheduling    | Flight Ops Service   |
 
 **Example - AirlineRequest.java**:
 
@@ -238,6 +240,45 @@ public class FlightRequest {
 }
 ```
 
+**Example - FlightScheduleRequest.java** ✨ NEW:
+
+```java
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class FlightScheduleRequest {
+    @NotNull(message = "Flight Id is required")
+    private Long flightId;
+
+    private Long departureAirportId;
+    private Long arrivalAirportId;
+
+    @NotNull(message = "Departure Time is required")
+    private LocalTime departureTime;
+
+    @NotNull(message = "Arrival Time is required")
+    private LocalTime arrivalTime;
+
+    @NotNull(message = "Start Date is required")
+    private LocalDate startDate;
+
+    @NotNull(message = "End Date is required")
+    private LocalDate endDate;
+
+    private List<DayOfWeek> operatingDays;  // e.g., [MONDAY, WEDNESDAY, FRIDAY]
+    private Boolean isActive;
+}
+```
+
+**Key Features of FlightScheduleRequest**:
+
+- ✅ Define recurring schedules with operating days
+- ✅ Support for daily, weekday, weekend, or custom patterns
+- ✅ Date range validation (start/end dates)
+- ✅ Time-based scheduling (not datetime)
+- ✅ Flexible operating days configuration
+
 **Example - FlightInstanceRequest.java** ✨ NEW:
 
 ```java
@@ -281,17 +322,18 @@ Located in: `src/main/java/com/aryan/payload/response/`
 
 These classes define the structure for outgoing API responses:
 
-| Response Class                | Purpose                           | Used By              |
-| ----------------------------- | --------------------------------- | -------------------- |
-| **ApiResponse**               | Generic success/error message     | All Services         |
-| **AuthResponse**              | Authentication with JWT token     | User Service         |
-| **CityResponse**              | City data                         | Location Service     |
-| **AirportResponse**           | Airport data with city info       | Location Service     |
-| **AirlineResponse**           | Airline data                      | Airline Core Service |
-| **AirlineDropdownItem**       | Simplified airline for dropdowns  | Airline Core Service |
-| **AircraftResponse**          | Aircraft data                     | Airline Core Service |
-| **FlightResponse** ✨         | Flight template data              | Flight Ops Service   |
-| **FlightInstanceResponse** ✨ | Flight instance with full details | Flight Ops Service   |
+| Response Class                | Purpose                             | Used By              |
+| ----------------------------- | ----------------------------------- | -------------------- |
+| **ApiResponse**               | Generic success/error message       | All Services         |
+| **AuthResponse**              | Authentication with JWT token       | User Service         |
+| **CityResponse**              | City data                           | Location Service     |
+| **AirportResponse**           | Airport data with city info         | Location Service     |
+| **AirlineResponse**           | Airline data                        | Airline Core Service |
+| **AirlineDropdownItem**       | Simplified airline for dropdowns    | Airline Core Service |
+| **AircraftResponse**          | Aircraft data                       | Airline Core Service |
+| **FlightResponse** ✨         | Flight template data                | Flight Ops Service   |
+| **FlightScheduleResponse** ✨ | Flight schedule with operating days | Flight Ops Service   |
+| **FlightInstanceResponse** ✨ | Flight instance with full details   | Flight Ops Service   |
 
 **Example - ApiResponse.java**:
 
@@ -336,6 +378,41 @@ public class FlightResponse {
     private Instant updatedAt;
 }
 ```
+
+**Example - FlightScheduleResponse.java** ✨ NEW:
+
+```java
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class FlightScheduleResponse {
+    private Long id;
+    private Long flightId;
+    private String flightNumber;
+
+    private AirportResponse departureAirport;
+    private AirportResponse arrivalAirport;
+
+    private LocalTime departureTime;
+    private LocalTime arrivalTime;
+
+    private LocalDate startDate;
+    private LocalDate endDate;
+
+    private List<DayOfWeek> operatingDays;  // [MONDAY, WEDNESDAY, FRIDAY]
+
+    private Boolean isActive;
+}
+```
+
+**Key Features of FlightScheduleResponse**:
+
+- ✅ Enriched with complete airport details
+- ✅ Operating days as array for easy processing
+- ✅ Time-only fields (no date component)
+- ✅ Date range for schedule validity
+- ✅ Flight number for easy reference
 
 **Example - FlightInstanceResponse.java** ✨ NEW (Enriched Response):
 
@@ -659,11 +736,11 @@ common-lib/
 │ DTOs                 │   1   │ User data transfer             │
 │ Enums                │   4   │ Status codes & roles           │
 │ Embeddables          │   3   │ Reusable embedded entities     │
-│ Request Payloads     │   7   │ API request structures         │
-│ Response Payloads    │   9   │ API response structures        │
+│ Request Payloads     │   8   │ API request structures         │
+│ Response Payloads    │  10   │ API response structures        │
 │ Utilities            │   1   │ Helper methods                 │
 ├──────────────────────┼───────┼────────────────────────────────┤
-│ TOTAL                │  25   │ Shared components              │
+│ TOTAL                │  27   │ Shared components              │
 └──────────────────────┴───────┴────────────────────────────────┘
 ```
 
@@ -925,6 +1002,7 @@ Looking for...          →  Use this component
 ✈️  Aircraft data       →  AircraftRequest/Response, AircraftStatus
 🌍 Location data       →  CityRequest/Response, AirportRequest/Response
 🛩️  Flight template     →  FlightRequest/Response
+📅 Flight schedules    →  FlightScheduleRequest/Response
 🎫 Flight instance     →  FlightInstanceRequest/Response
 📊 Flight statuses     →  FlightStatus enum
 🔧 Partial updates     →  MapperUtils.updateIfNotNull()
@@ -1001,7 +1079,7 @@ Part of the Airline Management System - MIT License
 
 **Common Library** | Powering All Microservices
 
-**25 Shared Components** • **4 Services** • **1 Source of Truth**
+**27 Shared Components** • **4 Services** • **1 Source of Truth**
 
 [⬆ Back to Top](#-common-library)
 
