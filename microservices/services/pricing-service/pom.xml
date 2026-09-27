@@ -10,7 +10,7 @@
     </parent>
 	<artifactId>pricing-service</artifactId>
     <name>pricing-services</name>
-    <description>pricing-services</description>
+    <description>Pricing service manages fares, rules, and baggage policies.</description>
 	<dependencies>
         <dependency>
             <groupId>com.aryan</groupId>
@@ -70,14 +70,6 @@
 						<goals>
 							<goal>compile</goal>
 						</goals>
-						<configuration>
-							<annotationProcessorPaths>
-								<path>
-									<groupId>org.projectlombok</groupId>
-									<artifactId>lombok</artifactId>
-								</path>
-							</annotationProcessorPaths>
-						</configuration>
 					</execution>
 					<execution>
 						<id>default-testCompile</id>
@@ -85,14 +77,6 @@
 						<goals>
 							<goal>testCompile</goal>
 						</goals>
-						<configuration>
-							<annotationProcessorPaths>
-								<path>
-									<groupId>org.projectlombok</groupId>
-									<artifactId>lombok</artifactId>
-								</path>
-							</annotationProcessorPaths>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
