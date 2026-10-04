@@ -11,6 +11,13 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing a specific occurrence of a flight.
+ *
+ * Stores the exact departure and arrival times,
+ * seat availability, booking window, and status
+ * for a single flight operation.
+ */
 @Entity
 @Data
 @Builder
@@ -55,6 +62,12 @@ public class FlightInstance {
 
     private boolean isActive = true;
 
+    /**
+     * Calculates and formats the flight duration
+     * as a human-readable string.
+     *
+     * @return formatted duration (e.g. "4h 15min"), or null if times are not set
+     */
     @Transient
     public String getFormatedDuration(){
         if(departureDateTime == null || arrivalDateTime == null) return null;

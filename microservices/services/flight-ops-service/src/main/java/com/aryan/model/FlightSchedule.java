@@ -11,6 +11,12 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+/**
+ * Entity representing a recurring flight schedule.
+ *
+ * Defines the operating days, departure/arrival times,
+ * and date range for which flight instances are generated.
+ */
 @Entity
 @Data
 @Builder

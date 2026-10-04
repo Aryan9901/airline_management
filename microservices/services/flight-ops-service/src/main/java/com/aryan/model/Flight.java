@@ -12,6 +12,13 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 
+/**
+ * Entity representing a flight template.
+ *
+ * Stores the flight number, airline, aircraft,
+ * route, and operational status. Flight instances
+ * are created from this template.
+ */
 @Entity
 @Data
 @Builder
