@@ -1,6 +1,5 @@
 package com.aryan.payload.request;
 
-import com.aryan.payload.response.BaggagepolicyResponse;
 import com.aryan.payload.response.FareRulesResponse;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;

@@ -59,7 +59,7 @@ public class FareResponse {
     // Relationships
     private Long fareRulesId;
     private FareRulesResponse fareRules;
-    private BaggagepolicyResponse baggagepolicy;
+    private BaggagePolicyResponse baggagePolicy;
 
     // Audit
     private Instant createdAt;

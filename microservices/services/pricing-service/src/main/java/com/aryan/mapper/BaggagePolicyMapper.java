@@ -3,7 +3,7 @@ package com.aryan.mapper;
 import com.aryan.model.BaggagePolicy;
 import com.aryan.model.Fare;
 import com.aryan.payload.request.BaggagePolicyRequest;
-import com.aryan.payload.response.BaggagepolicyResponse;
+import com.aryan.payload.response.BaggagePolicyResponse;
 
 public class BaggagePolicyMapper {
 
@@ -30,9 +30,9 @@ public class BaggagePolicyMapper {
 
     }
 
-    public static BaggagepolicyResponse toResponse(BaggagePolicy policy) {
+    public static BaggagePolicyResponse toResponse(BaggagePolicy policy) {
         if (policy == null) return null;
-        return BaggagepolicyResponse.builder()
+        return BaggagePolicyResponse.builder()
                 .id(policy.getId())
                 .name(policy.getName())
                 .description(policy.getDescription())

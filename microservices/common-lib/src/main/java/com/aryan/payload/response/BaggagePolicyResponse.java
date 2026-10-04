@@ -14,7 +14,7 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BaggagepolicyResponse {
+public class BaggagePolicyResponse {
 
     private Long id;
 

@@ -4,7 +4,7 @@ import com.aryan.mapper.BaggagePolicyMapper;
 import com.aryan.model.BaggagePolicy;
 import com.aryan.model.Fare;
 import com.aryan.payload.request.BaggagePolicyRequest;
-import com.aryan.payload.response.BaggagepolicyResponse;
+import com.aryan.payload.response.BaggagePolicyResponse;
 import com.aryan.repository.BaggagePolicyRepository;
 import com.aryan.repository.FareRepository;
 import com.aryan.service.BaggagePolicyService;
@@ -23,7 +23,7 @@ public class BaggagePolicyServiceImpl implements BaggagePolicyService {
 
 
     @Override
-    public BaggagepolicyResponse createBaggagePolicy(BaggagePolicyRequest request) throws Exception {
+    public BaggagePolicyResponse createBaggagePolicy(BaggagePolicyRequest request) throws Exception {
         Fare fare = fareRepository.findById(request.getFareId())
                 .orElseThrow(
                         () -> new Exception("Fare not found with the given id")
@@ -37,7 +37,7 @@ public class BaggagePolicyServiceImpl implements BaggagePolicyService {
     }
 
     @Override
-    public BaggagepolicyResponse getBaggagePolicyById(Long id) throws Exception {
+    public BaggagePolicyResponse getBaggagePolicyById(Long id) throws Exception {
         return BaggagePolicyMapper.toResponse(
                 baggagePolicyRepository.findById(id)
                         .orElseThrow(
@@ -47,7 +47,7 @@ public class BaggagePolicyServiceImpl implements BaggagePolicyService {
     }
 
     @Override
-    public BaggagepolicyResponse getBaggagePolicyByFareId(Long fareId) throws Exception {
+    public BaggagePolicyResponse getBaggagePolicyByFareId(Long fareId) throws Exception {
         return BaggagePolicyMapper.toResponse(
                 baggagePolicyRepository.findByFareId(fareId)
                         .orElseThrow(
@@ -57,7 +57,7 @@ public class BaggagePolicyServiceImpl implements BaggagePolicyService {
     }
 
     @Override
-    public List<BaggagepolicyResponse> getBaggagePolicyByAirlineId(Long airlineId) {
+    public List<BaggagePolicyResponse> getBaggagePolicyByAirlineId(Long airlineId) {
         return baggagePolicyRepository.findByAirlineId(airlineId)
                 .stream()
                 .map(BaggagePolicyMapper::toResponse)
@@ -65,7 +65,7 @@ public class BaggagePolicyServiceImpl implements BaggagePolicyService {
     }
 
     @Override
-    public BaggagepolicyResponse updateBaggagePolicy(Long id, BaggagePolicyRequest request) throws Exception {
+    public BaggagePolicyResponse updateBaggagePolicy(Long id, BaggagePolicyRequest request) throws Exception {
         BaggagePolicy policyToUpdate = baggagePolicyRepository.findById(id)
                 .orElseThrow(
                         () -> new Exception("Baggage Policy not found")
