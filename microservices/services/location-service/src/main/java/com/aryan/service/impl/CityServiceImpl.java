@@ -11,6 +11,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service implementation for city management operations.
+ */
 @Service
 @RequiredArgsConstructor
 public class CityServiceImpl implements CityService {

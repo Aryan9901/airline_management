@@ -12,6 +12,12 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 
+/**
+ * Entity representing the baggage policy associated with a fare.
+ *
+ * Stores cabin baggage and check-in baggage allowances,
+ * weight limits, and special baggage options.
+ */
 @Data
 @Entity
 @Builder

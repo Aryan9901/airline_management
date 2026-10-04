@@ -11,6 +11,12 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 
+/**
+ * Entity representing the rules associated with a fare.
+ *
+ * Stores refund, change, and cancellation policies
+ * for a specific fare.
+ */
 @Data
 @Builder
 @Entity

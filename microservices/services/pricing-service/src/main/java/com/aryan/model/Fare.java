@@ -13,6 +13,12 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 
+/**
+ * Entity representing a fare for a specific flight and cabin class.
+ *
+ * Stores pricing details, fare benefits, and associations
+ * to baggage policy and fare rules.
+ */
 @Entity
 @Data
 @Builder
@@ -80,6 +86,12 @@ public class Fare {
     @UpdateTimestamp
     private Instant updatedAt;
 
+    /**
+     * Calculates the total price including base fare,
+     * taxes, fees, and current price adjustments.
+     *
+     * @return total fare price
+     */
     public Double getTotalPrice(){
         return baseFare + taxesAndFees + airlineFees + currentPrice;
     }
