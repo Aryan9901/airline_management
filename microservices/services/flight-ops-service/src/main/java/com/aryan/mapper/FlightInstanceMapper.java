@@ -11,8 +11,20 @@ import com.aryan.payload.response.AirportResponse;
 import com.aryan.payload.response.FlightInstanceResponse;
 import com.aryan.util.MapperUtils;
 
+/**
+ * Utility class for converting between
+ * {@link FlightInstance}, {@link FlightInstanceRequest},
+ * and {@link FlightInstanceResponse}.
+ */
 public class FlightInstanceMapper {
 
+    /**
+     * Converts a flight instance request into a {@link FlightInstance} entity.
+     *
+     * @param request flight instance request payload
+     * @param flight associated flight entity
+     * @return mapped flight instance entity
+     */
     public static FlightInstance toEntity(FlightInstanceRequest request, Flight flight){
         if(request == null || flight == null) return null;
 
@@ -31,6 +43,17 @@ public class FlightInstanceMapper {
                 .build();
     }
 
+    /**
+     * Converts a {@link FlightInstance} entity into a {@link FlightInstanceResponse},
+     * enriched with cross-service references.
+     *
+     * @param flightInstance flight instance entity
+     * @param aircraft aircraft details
+     * @param airline airline details
+     * @param departureAirport departure airport details
+     * @param arrivalAirport arrival airport details
+     * @return enriched flight instance response
+     */
     public static FlightInstanceResponse toResponse(
             FlightInstance flightInstance,
             AircraftResponse aircraft,
@@ -62,6 +85,12 @@ public class FlightInstanceMapper {
                 .build();
     }
 
+    /**
+     * Updates an existing flight instance entity using non-null values from the request.
+     *
+     * @param request updated flight instance details
+     * @param flightInstance existing flight instance entity
+     */
     public static void updateEntity(FlightInstanceRequest request, FlightInstance flightInstance){
         if(request == null || flightInstance == null) return;
 

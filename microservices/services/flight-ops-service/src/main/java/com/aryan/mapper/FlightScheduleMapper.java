@@ -9,8 +9,20 @@ import com.aryan.payload.request.FlightScheduleRequest;
 import com.aryan.payload.response.*;
 import com.aryan.util.MapperUtils;
 
+/**
+ * Utility class for converting between
+ * {@link FlightSchedule}, {@link FlightScheduleRequest},
+ * and {@link FlightScheduleResponse}.
+ */
 public class FlightScheduleMapper {
 
+    /**
+     * Converts a flight schedule request into a {@link FlightSchedule} entity.
+     *
+     * @param request flight schedule request payload
+     * @param flight associated flight entity
+     * @return mapped flight schedule entity
+     */
     public static FlightSchedule toEntity(FlightScheduleRequest request, Flight flight){
         if(request == null || flight == null) return null;
 
@@ -27,6 +39,15 @@ public class FlightScheduleMapper {
                 .build();
     }
 
+    /**
+     * Converts a {@link FlightSchedule} entity into a {@link FlightScheduleResponse},
+     * enriched with airport details.
+     *
+     * @param flightSchedule flight schedule entity
+     * @param arrival arrival airport details
+     * @param departure departure airport details
+     * @return enriched flight schedule response
+     */
     public static FlightScheduleResponse toResponse(
             FlightSchedule flightSchedule,
             AirportResponse arrival,
@@ -49,6 +70,12 @@ public class FlightScheduleMapper {
                 .build();
     }
 
+    /**
+     * Updates an existing flight schedule entity using non-null values from the request.
+     *
+     * @param request updated flight schedule details
+     * @param flightSchedule existing flight schedule entity
+     */
     public static void updateEntity(FlightScheduleRequest request, FlightSchedule flightSchedule){
         if(request == null || flightSchedule == null) return;
 

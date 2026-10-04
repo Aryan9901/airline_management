@@ -7,8 +7,21 @@ import com.aryan.payload.request.FareRequest;
 import com.aryan.payload.response.*;
 import com.aryan.util.MapperUtils;
 
+/**
+ * Utility class for converting between
+ * {@link Fare}, {@link FareRequest}, and {@link FareResponse}.
+ */
 public class FareMapper {
 
+    /**
+     * Converts a fare request into a {@link Fare} entity.
+     *
+     * Calculates current price from base fare, taxes, and fees
+     * if not explicitly provided.
+     *
+     * @param request fare request payload
+     * @return mapped fare entity
+     */
     public static Fare toEntity(FareRequest request){
         if(request == null) return null;
 
@@ -69,6 +82,12 @@ public class FareMapper {
                 .build();
     }
 
+    /**
+     * Converts a {@link Fare} entity into a {@link FareResponse}.
+     *
+     * @param fare fare entity
+     * @return fare response
+     */
     public static FareResponse toResponse(
             Fare fare
     ){
@@ -123,6 +142,12 @@ public class FareMapper {
                 .build();
     }
 
+    /**
+     * Updates an existing fare entity using non-null values from the request.
+     *
+     * @param request updated fare details
+     * @param fare existing fare entity
+     */
     public static void updateEntity(FareRequest request, Fare fare){
         if(request == null || fare == null) return;
 
@@ -166,6 +191,12 @@ public class FareMapper {
         MapperUtils.updateIfNotNull(request.getAirportTransfer(), psb::setAirportTransfer);
     }
 
+    /**
+     * Safely converts a nullable Boolean to a primitive boolean.
+     *
+     * @param value nullable boolean value
+     * @return false if null, otherwise the boolean value
+     */
     private static boolean bool(Boolean value){
         return value != null ? value : false;
     }

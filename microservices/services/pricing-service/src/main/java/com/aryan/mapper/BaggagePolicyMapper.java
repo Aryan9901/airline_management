@@ -5,8 +5,20 @@ import com.aryan.model.Fare;
 import com.aryan.payload.request.BaggagePolicyRequest;
 import com.aryan.payload.response.BaggagePolicyResponse;
 
+/**
+ * Utility class for converting between
+ * {@link BaggagePolicy}, {@link BaggagePolicyRequest},
+ * and {@link BaggagePolicyResponse}.
+ */
 public class BaggagePolicyMapper {
 
+    /**
+     * Converts a baggage policy request into a {@link BaggagePolicy} entity.
+     *
+     * @param request baggage policy request payload
+     * @param fare fare associated with this policy
+     * @return mapped baggage policy entity
+     */
     public static BaggagePolicy toEntity(BaggagePolicyRequest request, Fare fare){
 
         if (request==null)return null;
@@ -30,6 +42,12 @@ public class BaggagePolicyMapper {
 
     }
 
+    /**
+     * Converts a {@link BaggagePolicy} entity into a {@link BaggagePolicyResponse}.
+     *
+     * @param policy baggage policy entity
+     * @return baggage policy response
+     */
     public static BaggagePolicyResponse toResponse(BaggagePolicy policy) {
         if (policy == null) return null;
         return BaggagePolicyResponse.builder()
@@ -54,6 +72,12 @@ public class BaggagePolicyMapper {
                 .build();
     }
 
+    /**
+     * Updates an existing baggage policy entity using non-null values from the request.
+     *
+     * @param request updated baggage policy details
+     * @param existing existing baggage policy entity
+     */
     public static void updateEntity(BaggagePolicyRequest request, BaggagePolicy existing) {
         if (request == null || existing == null) return;
         if (request.getName() != null) existing.setName(request.getName());
