@@ -20,6 +20,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * Service implementation for flight instance management operations.
+ */
 @Service
 @RequiredArgsConstructor
 public class FlightInstanceServiceImpl implements FlightInstanceService {
@@ -119,6 +122,14 @@ public class FlightInstanceServiceImpl implements FlightInstanceService {
         flightInstanceRepository.delete(flightInstance);
     }
 
+    /**
+     * Builds a FlightInstanceResponse by assembling stub cross-service references.
+     *
+     * Note: Full service-to-service communication is pending implementation.
+     *
+     * @param flightInstance flight instance entity
+     * @return assembled flight instance response
+     */
     private FlightInstanceResponse convertToFlightInstanceResponse(FlightInstance flightInstance){
 
         //        todo: service to service comunication

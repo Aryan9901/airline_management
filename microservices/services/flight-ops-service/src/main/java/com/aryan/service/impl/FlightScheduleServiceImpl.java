@@ -24,6 +24,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Service implementation for flight schedule management operations.
+ *
+ * On schedule creation, automatically generates flight instances
+ * for each operating day within the schedule date range.
+ */
 @Service
 @RequiredArgsConstructor
 public class FlightScheduleServiceImpl implements FlightScheduleService {
@@ -115,6 +121,12 @@ public class FlightScheduleServiceImpl implements FlightScheduleService {
         flightScheduleRepository.delete(flightSchedule);
     }
 
+    /**
+     * Builds a FlightScheduleResponse by assembling stub cross-service references.
+     *
+     * @param flightSchedule flight schedule entity
+     * @return assembled flight schedule response
+     */
     private FlightScheduleResponse convertToFlightScheduleResponse(FlightSchedule flightSchedule){
         AirportResponse departureAirport = AirportResponse.builder().id(flightSchedule.getDepartureAirportId()).build();
         AirportResponse arrivalAirport = AirportResponse.builder().id(flightSchedule.getArrivalAirportId()).build();

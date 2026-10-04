@@ -18,6 +18,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Service implementation for flight management operations.
+ */
 @Service
 @RequiredArgsConstructor
 public class FlightServiceImpl implements FlightService {
@@ -87,6 +90,14 @@ public class FlightServiceImpl implements FlightService {
         flightRepository.delete(flight);
     }
 
+    /**
+     * Builds a FlightResponse by assembling stub cross-service references.
+     *
+     * Note: Full service-to-service communication is pending implementation.
+     *
+     * @param flight flight entity
+     * @return assembled flight response
+     */
     public FlightResponse convertToFlightResponse(Flight flight){
         //        todo: service to service comunication
         AircraftResponse aircraftResponse = AircraftResponse.builder().id(flight.getAircraftId()).build();

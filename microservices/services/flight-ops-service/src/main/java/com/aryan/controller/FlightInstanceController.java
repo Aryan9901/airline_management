@@ -14,6 +14,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 
+/**
+ * REST controller for flight instance management operations.
+ *
+ * Provides APIs for creating, retrieving, updating,
+ * deleting, and filtering flight instances.
+ *
+ * Base URL: /api/flight-instances
+ */
 @RestController
 @RequestMapping("/api/flight-instances")
 @RequiredArgsConstructor
@@ -21,6 +29,14 @@ public class FlightInstanceController {
 
     private final FlightInstanceService flightInstanceService;
 
+    /**
+     * Creates a new flight instance for the specified airline.
+     *
+     * @param airlineId authenticated airline identifier
+     * @param request flight instance details
+     * @return created flight instance
+     * @throws Exception if the flight is not found
+     */
     @PostMapping
     public ResponseEntity<FlightInstanceResponse> createFlightInstance(
             @RequestHeader("X-Airline-Id") Long airlineId,
@@ -29,6 +45,13 @@ public class FlightInstanceController {
         return ResponseEntity.status(HttpStatus.CREATED).body(flightInstanceService.createFlightInstance(airlineId,request));
     }
 
+    /**
+     * Retrieves a flight instance by its identifier.
+     *
+     * @param id flight instance identifier
+     * @return flight instance details
+     * @throws Exception if the flight instance is not found
+     */
     @GetMapping("/{id}")
     public ResponseEntity<FlightInstanceResponse> getFlightInstanceById(
             @PathVariable Long id
@@ -36,6 +59,21 @@ public class FlightInstanceController {
         return ResponseEntity.ok(flightInstanceService.getFlightInstanceById(id));
     }
 
+    /**
+     * Retrieves a paginated list of flight instances for the specified airline.
+     *
+     * Supports optional filtering by departure airport, arrival airport,
+     * flight, and departure date.
+     *
+     * @param airlineId authenticated airline identifier
+     * @param departureAirportId optional departure airport filter
+     * @param arrivalAirportId optional arrival airport filter
+     * @param flightId optional flight filter
+     * @param onDate optional departure date filter
+     * @param pageable pagination information
+     * @return paginated flight instance list
+     * @throws Exception if the airline is not found
+     */
     @GetMapping
     public ResponseEntity<Page<FlightInstanceResponse>> getFlightInstances(
             @RequestHeader("X-Airline-Id") Long airlineId,
@@ -55,6 +93,14 @@ public class FlightInstanceController {
         ));
     }
 
+    /**
+     * Updates an existing flight instance.
+     *
+     * @param id flight instance identifier
+     * @param request updated flight instance details
+     * @return updated flight instance
+     * @throws Exception if the flight instance is not found
+     */
     @PutMapping("/{id}")
     public ResponseEntity<FlightInstanceResponse> updateFlightInstance(
             @PathVariable Long id,
@@ -63,6 +109,13 @@ public class FlightInstanceController {
         return ResponseEntity.ok(flightInstanceService.updateFlightInstance(id,request));
     }
 
+    /**
+     * Deletes a flight instance.
+     *
+     * @param id flight instance identifier
+     * @return success response
+     * @throws Exception if the flight instance is not found
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse> deleteFlightInstance(
             @PathVariable Long id
