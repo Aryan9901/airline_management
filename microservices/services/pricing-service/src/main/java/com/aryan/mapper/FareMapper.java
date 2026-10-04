@@ -87,9 +87,7 @@ public class FareMapper {
                 .currentPrice(fare.getCurrentPrice())
                 .totalPrice(fare.getTotalPrice())
                 .fareLabel(fare.getFareLable())
-//              todo: watch farerule
-//              .fareRulesId(fare.getFareRules() != null ? fare.getFareRules().getId() : null)
-
+                .fareRulesId(fare.getFareRules() != null ? fare.getFareRules().getId() : null)
                 //seat benefits
                 .extraSeatSpace(fare.getSeatBenefits() != null ? fare.getSeatBenefits().getExtraSeatSpace() : null )
                 .preferredSeatChoice(fare.getSeatBenefits() != null ? fare.getSeatBenefits().getPreferredSeatChoice() : null )
@@ -116,11 +114,9 @@ public class FareMapper {
                 //premium service benefits
                 .airportTransfer(fare.getPremiumServiceBenefits() != null ? fare.getPremiumServiceBenefits().getAirportTransfer() : null )
                 .loungeAccess(fare.getPremiumServiceBenefits() != null ? fare.getPremiumServiceBenefits().getLoungeAccess() : null )
-
                 // Nested response
-//              todo: watch fare rule/baggage policy
-//              .fareRules(fare.getFareRules() != null ? FareRulesMapper.toResponse(fare.getFareRules()))
-//              .baggagePolicy(fare.getBaggagePolicy() != null ? BaggagePolicyMapper.toResponse(fare.getBaggagePolicy()))
+                .fareRules(fare.getFareRules() != null ? FareRulesMapper.toResponse(fare.getFareRules()) : null)
+                .baggagePolicy(fare.getBaggagePolicy() != null ? BaggagePolicyMapper.toResponse(fare.getBaggagePolicy()) : null)
 
                 .createdAt(fare.getCreatedAt())
                 .updatedAt(fare.getUpdatedAt())

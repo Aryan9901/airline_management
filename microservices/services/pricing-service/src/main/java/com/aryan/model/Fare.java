@@ -50,11 +50,11 @@ public class Fare {
 
     private String fareLable;
 
-//    TODO: when we create baggage policy
-//    private BaggagePolicy baggagePolicy;
+    @OneToOne(mappedBy = "fare", cascade = CascadeType.ALL, orphanRemoval = true)
+    private BaggagePolicy baggagePolicy;
 
-//    TODO: when we create Fare Rules
-//    priivate FareRule fareRules;
+    @OneToOne(mappedBy = "fare", cascade = CascadeType.ALL, orphanRemoval = true)
+    private FareRules fareRules;
 
     @Embedded
     private SeatBenefits seatBenefits = new SeatBenefits();
